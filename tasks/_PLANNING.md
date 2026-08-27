@@ -9,6 +9,7 @@ This folder contains coding tasks that an orchestration agent can execute, based
   - In-repo: `README.md`, `docs/openapi.yaml`, `src/...`, `test/...`, `tasks/...`
 
 - **Context** Before creating any task files you should review the following files for context:
+- ../mentorhub/DeveloperEdition/standards/ArchitecturePrinciples.md
 - ../mentorhub/DeveloperEdition/standards/spa_standards.md
 - ../mentorhub_spa_utils/README.md
 - ./README.md
