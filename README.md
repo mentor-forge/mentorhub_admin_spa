@@ -71,6 +71,10 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation
 | `http://<host>:8080/admin/logs` | `/logs` | LogsPage (External events) |
 | `http://<host>:8080/admin/config` | `/config` | AdminPage (Runtime config viewer) |
 
+### Settings & Logs Features
+
+- **Settings (`/admin/settings`)**: Tabbed interface with **Products** and **Discounts** spreadsheet tables using `SettingsTableEditor`. Features inline editing with save-on-blur, quick row creation via Add button, and soft-delete archiving (`status: 'archived'` for Products, `status: 'inactive'` for Discounts). Active tab is synchronized with URL query `?tab=products|discounts`.
+
 ## Local Ports
 
 | Service | Port |
