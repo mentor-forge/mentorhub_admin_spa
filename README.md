@@ -48,6 +48,7 @@ npm run container
 ```
 src/
   api/              # API client (setting, external-event, config)
+  components/       # SettingsTableEditor (local control built to spa_utils harvest contract)
   pages/            # SettingsPage, LogsPage, AdminPage
   composables/      # useAuth (spa_utils re-export), useConfig, useRoles, useSettings, useExternalEvents
   router/           # Auth guards; prefix /admin/ with /settings, /logs, /config

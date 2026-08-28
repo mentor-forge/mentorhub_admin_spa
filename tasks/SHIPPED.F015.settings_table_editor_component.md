@@ -1,6 +1,6 @@
 # F015 – Spreadsheet-style `SettingsTableEditor` component
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F014_setting_and_external_event_api_client`  
 **Description**: Build one reusable, column-configurable spreadsheet-style table editor that both Settings tabs use: inline cell editing with save-on-blur, a per-row delete button, and an "Add" button above the table. Component and unit tests only — the Settings page wiring is F016.
@@ -92,4 +92,22 @@ Do not change `src/pages/**`, `src/router/index.ts`, `src/api/**`, or container 
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Create `src/components/settingsTable.ts` defining `SettingsTableColumn` and `SettingsEditorType`.
+2. Create `src/components/SettingsTableEditor.vue` implementing column-configurable spreadsheet table editor with standalone spa_utils editors (`SentenceEditor`, `WordEditor`, `CountEditor`, `DateTimeEditor`), Add button, delete confirmation dialog, and automation IDs.
+3. Create `src/components/SettingsTableEditor.test.ts` covering all rendering states, callbacks, pending states, error handling, and confirmation dialog flow.
+4. Update `README.md` to note `src/components/SettingsTableEditor.vue`.
+5. Run lint, test:coverage, and build to ensure component coverage threshold (90/90/85).
+
+### Summary & Test Results
+- Created `src/components/settingsTable.ts` for generic `SettingsTableColumn` and `SettingsEditorType` definitions.
+- Created generic `src/components/SettingsTableEditor.vue` adhering strictly to the spa_utils harvest contract (zero API or route imports, generic row typing, standalone `SentenceEditor`, `WordEditor`, `CountEditor`, `DateTimeEditor`, save-on-blur, delete confirmation modal, automation ID contract).
+- Created `src/components/SettingsTableEditor.test.ts` with 8 comprehensive unit tests.
+- Updated `README.md` architecture overview.
+- `npm run lint` passed with 0 errors.
+- `npm run test:coverage` passed with 53/53 tests; Component coverage exceeded thresholds:
+  - Statements: 100%
+  - Branches: 87.17% (threshold: 85%)
+  - Functions: 92.3% (threshold: 90%)
+  - Lines: 100% (threshold: 90%)
+- `npm run build` passed cleanly.

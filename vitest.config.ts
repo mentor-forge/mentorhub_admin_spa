@@ -39,6 +39,7 @@ export default defineConfig({
         '**/*.spec.ts',
         '**/*.test.ts',
         'src/api/types.ts', // Type-only file, cannot have coverage
+        'src/components/settingsTable.ts', // Type-only file, cannot have coverage
       ],
       thresholds: {
         'src/api/**': {
