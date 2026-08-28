@@ -54,7 +54,7 @@ src/
   plugins/          # Vuetify
 ```
 
-Uses `@mentor-forge/mentorhub_spa_utils` **0.5.x** for auth, `AdminPage`, and shared utilities.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** for auth, `AdminPage`, and shared utilities.
 
 ## Local Ports
 

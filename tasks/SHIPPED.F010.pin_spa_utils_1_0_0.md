@@ -1,6 +1,6 @@
 # F010 – Pin `@mentor-forge/mentorhub_spa_utils@1.0.0`
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: _(none — first task in this wave)_  
 **Description**: This repo owns the Admin SPA **1.0.0 pin** (issue F-AS02). Bump `@mentor-forge/mentorhub_spa_utils` from `^0.5.7` to exact **`1.0.0`**, refresh the lockfile from CodeArtifact, and fix any compile/test breakage caused by APIs removed in 1.0.0. Do not adopt `PageFrame`, do not change routes, and do not touch the `/admin/` base path in this task.
@@ -69,4 +69,19 @@ Do not change `src/App.vue` chrome, `src/router/index.ts`, `vite.config.ts`, `ng
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Update `package.json` with exact pin `"@mentor-forge/mentorhub_spa_utils": "1.0.0"`.
+2. Run `npm install --include=dev` to update `package-lock.json`.
+3. Verify `npm ls @mentor-forge/mentorhub_spa_utils` returns `1.0.0`.
+4. Update `README.md` reference to spa_utils 1.0.0.
+5. Run lint, tests, and build.
+
+### Summary & Test Results
+- Pinned `@mentor-forge/mentorhub_spa_utils` to exact `1.0.0` in `package.json`.
+- Refreshed `package-lock.json` with `npm install --include=dev`.
+- `npm ls @mentor-forge/mentorhub_spa_utils` confirms `1.0.0`.
+- Verified no `useInfiniteScroll` or `InfiniteScroll*` APIs are used in `src/`.
+- Updated `README.md` to reference `1.0.0`.
+- `npm run lint` passed with 0 errors.
+- `npm run test` passed (25/25 tests across 5 test files).
+- `npm run build` passed cleanly.
