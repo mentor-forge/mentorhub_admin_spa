@@ -1,6 +1,6 @@
 # F012 – Vite `base` `/admin/`, router `BASE_URL`, and the three-route table
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F011_adopt_page_frame`  
 **Description**: Mount the app at Vite `base: '/admin/'` with `createWebHistory(import.meta.env.BASE_URL)` so browser URLs are `/admin/...` and never `/admin/admin/...`. Establish the final route table for this SPA (`/config`, `/settings`, `/logs`) with thin placeholder pages for Settings and Logs, add base-aware runtime-config injection, and add a prefixed dev proxy. Do not change `nginx.conf.template`, the `Dockerfile`, or `src/api/client.ts` in this task.
@@ -94,4 +94,21 @@ Do not change `nginx.conf.template`, `Dockerfile`, `package.json`, or `src/api/c
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Create placeholder `src/pages/SettingsPage.vue` and `src/pages/LogsPage.vue`.
+2. Create `public/runtime-config.js.template`, `public/runtime-config.js`, and `.env.development`.
+3. Update `vite.config.ts` with `base: '/admin/'`, `injectRuntimeConfig` plugin, and `/admin/api` dev proxy.
+4. Update `src/router/index.ts` with `createWebHistory(import.meta.env.BASE_URL)` and routes `/settings`, `/logs`, `/config`, redirect `/` -> `/settings`, and base-aware IdP return URL.
+5. Update `README.md` with prefixed URL and route table documentation.
+6. Verify with lint, unit tests, and build check on `dist/index.html`.
+
+### Summary & Test Results
+- Created placeholder `SettingsPage.vue` (`admin-settings-page`) and `LogsPage.vue` (`admin-logs-page`).
+- Added `public/runtime-config.js.template`, `public/runtime-config.js`, and `.env.development`.
+- Configured Vite `base: '/admin/'`, runtime config HTML transformation plugin, and `/admin/api` dev proxy.
+- Updated `src/router/index.ts` to use `createWebHistory(import.meta.env.BASE_URL)` and route table (`/` -> `/settings`, `/settings`, `/logs`, `/config`).
+- Base-aware IdP return URL constructed in `router.beforeEach`.
+- Updated `README.md` with prefixed dev URLs and route table.
+- `npm run lint` passed with 0 errors.
+- `npm run test` passed (25/25 tests across 5 test files).
+- `npm run build` succeeded; verified `dist/index.html` prefixes all assets, icons, and `runtime-config.js` with `/admin/`.
