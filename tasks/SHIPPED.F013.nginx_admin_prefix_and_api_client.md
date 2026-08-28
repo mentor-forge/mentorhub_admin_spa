@@ -1,6 +1,6 @@
 # F013 – SPA nginx `/admin/` prefix, container runtime-config, and prefixed API client
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F012_vite_base_and_router_prefix`  
 **Description**: Teach container nginx to serve the `/admin/` prefix (assets, Vue history fallback, prefixed API proxy, prefixed `runtime-config.js`), generate `runtime-config.js` from the compose `IDP_LOGIN_URI` at container start, and switch the API client to the prefixed `/admin/api` base so calls from the welcome origin reach `admin_api` through this SPA's nginx. Keep direct-port `/api/` and `/runtime-config.js` for debugging.
@@ -91,4 +91,28 @@ Do not change `vite.config.ts`, `src/router/index.ts`, or any page component in 
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Update `nginx.conf.template` to support `/admin/` prefix, `/admin/api/`, dual runtime-config.js, `/` redirect, and prefixed asset caching.
+2. Update `Dockerfile` to add `IDP_LOGIN_URI` default and startup `envsubst` for `runtime-config.js`.
+3. Update `src/api/client.ts` to derive `API_BASE` from `import.meta.env.BASE_URL`.
+4. Update `src/api/client.test.ts` to assert `/admin/api/config`.
+5. Update `package.json` `open` script to use `/admin/`.
+6. Update `README.md` with URL boundaries and webhook ingress note.
+7. Run lint, unit tests, build, container build, service run and curl checks.
+
+### Summary & Test Results
+- Updated `nginx.conf.template` to serve `/admin/` prefix, proxy `/admin/api/` and `/api/` to Admin API, provide `/` -> `/admin/` redirect, serve `/admin/runtime-config.js` and `/runtime-config.js` with `no-store`, and cache prefixed assets with `public, immutable`.
+- Updated `Dockerfile` with `IDP_LOGIN_URI` and startup `envsubst` for `runtime-config.js`.
+- Updated `src/api/client.ts` to derive `API_BASE` from `import.meta.env.BASE_URL` (`/admin/api`).
+- Updated `src/api/client.test.ts` and `vitest.config.ts` to assert `/admin/api/config`.
+- Updated `package.json` `open` script to target `/admin/`.
+- Updated `README.md` with URL boundaries and webhook ingress note.
+- `npm run lint`, `npm run test` (25/25), `npm run build` passed.
+- `npm run container` built container image cleanly.
+- `mh up admin` started container stack; verified all curl endpoints:
+  - `http://localhost:8390/` -> 302 to `/admin/`
+  - `http://localhost:8390/admin/`, `/admin/settings`, `/admin/logs` -> 200 HTML with `no-store`
+  - `http://localhost:8390/admin/runtime-config.js` and `/runtime-config.js` -> 200 `no-store` with injected `IDP_LOGIN_URI`
+  - `http://localhost:8390/admin/api/config` and `/api/config` -> 401 JSON from `admin_api`
+  - `http://localhost:8390/health` -> 200 "healthy"
+  - `http://localhost:8080/admin/` -> 200 OK from welcome nginx proxying to `admin_spa`

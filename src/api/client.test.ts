@@ -56,7 +56,7 @@ describe('API Client', () => {
 
       expect(result).toEqual(mockConfig)
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/config',
+        '/admin/api/config',
         expect.objectContaining({
           headers: expect.objectContaining({
             'Authorization': 'Bearer test-token'

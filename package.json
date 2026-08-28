@@ -18,7 +18,7 @@
     "service": "mh down && mh up admin && npm run open",
     "container": "sh scripts/docker-build.sh",
     "push": "docker push ghcr.io/mentor-forge/mentorhub_admin_spa:latest",
-    "open": "open -a 'Google Chrome' 'http://localhost:8390' || google-chrome 'http://localhost:8390' || xdg-open 'http://localhost:8390'",
+    "open": "open -a 'Google Chrome' 'http://localhost:8390/admin/' || google-chrome 'http://localhost:8390/admin/' || xdg-open 'http://localhost:8390/admin/'",
     "build-publish": "npm install --include=dev && npm run container && npm run push",
     "build-package": "npm install --include=dev && npm run container",
     "publish-package": "npm run push",

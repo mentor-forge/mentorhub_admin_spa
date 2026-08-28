@@ -1,7 +1,7 @@
 import type { ConfigResponse, Error } from './types'
 import { redirectToIdpLogin, useAuth } from '@mentor-forge/mentorhub_spa_utils'
 
-const API_BASE = '/api'
+const API_BASE = `${import.meta.env.BASE_URL}api`
 
 class ApiError extends Error {
   constructor(

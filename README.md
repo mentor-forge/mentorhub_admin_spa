@@ -56,7 +56,12 @@ src/
 
 Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation shell (catalog and Products lists live on Discovery).
 
-### Routes
+### Routes & Boundaries
+
+- **Supported Browser Entry**: `http://<host>:8080/admin/` (via welcome / ALB proxy).
+- **Direct Debug Port**: `http://localhost:8390/admin/` (for Cypress and direct-port debugging only; `http://localhost:8390/` redirects to `/admin/`).
+- **API Proxy**: Frontend API calls target `/admin/api/` which container NGINX proxies to `http://${API_HOST}:${API_PORT}/api/` (direct `/api/` also proxied for local dev).
+- **Webhook Ingress Exclusion**: Webhook ingress endpoints (Stripe/Cognito, F-AA01) are served on Admin API directly and are **never** exposed under `/admin/`.
 
 | Browser URL | Vue path | Page |
 |---|---|---|
@@ -69,7 +74,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation
 
 | Service | Port |
 |---------|------|
-| Admin SPA (dev) | 8390 (served at `/admin/`) |
+| Admin SPA (dev / debug) | 8390 (served at `/admin/`) |
 | Admin API (proxy target) | 8389 |
 
 ## CI
