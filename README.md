@@ -30,6 +30,15 @@ npm run dev
 ## run unit tests
 npm run test:unit
 
+## run unit tests with coverage
+npm run test:coverage
+
+## open Cypress E2E test runner
+npm run cypress
+
+## run Cypress E2E tests headless
+npm run cypress:run
+
 ## de down and start db + admin-api containers
 npm run api
 

@@ -27,6 +27,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
+        'cypress/**',
         'src/main.ts',
         'src/App.vue',
         'src/vite-env.d.ts',
