@@ -47,9 +47,9 @@ npm run container
 
 ```
 src/
-  api/              # API client (config only for MVP shell)
+  api/              # API client (setting, external-event, config)
   pages/            # SettingsPage, LogsPage, AdminPage
-  composables/      # useAuth (spa_utils re-export), useConfig, useRoles
+  composables/      # useAuth (spa_utils re-export), useConfig, useRoles, useSettings, useExternalEvents
   router/           # Auth guards; prefix /admin/ with /settings, /logs, /config
   plugins/          # Vuetify
 ```

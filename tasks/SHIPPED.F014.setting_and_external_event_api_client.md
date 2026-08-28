@@ -1,6 +1,6 @@
 # F014 – Setting and ExternalEvent API client, types, and query layer
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F013_nginx_admin_prefix_and_api_client`  
 **Description**: Add the typed client surface the Settings and Logs pages need: list / create / update of polymorphic `Setting` documents (Product and Discount variants) and list of `ExternalEvent` ingress records with source filtering. Client and types only — no pages, components, or routes in this task.
@@ -94,4 +94,26 @@ Paths are relative to **this SPA repository root**.
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Verified OpenAPI spec from running API (`http://localhost:8389/docs/openapi.yaml`).
+2. Update `src/api/types.ts` with `Breadcrumb`, `ProductSetting`, `DiscountSetting`, `Setting`, create/update types, and narrowing helpers (`isProductSetting`, `isDiscountSetting`).
+3. Add unit tests for narrowing helpers in `src/api/types.test.ts`.
+4. Update `src/api/client.ts` with `listSettings`, `createSetting`, `getSetting`, `updateSetting`, `listExternalEvents`, pagination headers, and query parameter handling.
+5. Create `src/composables/useSettings.ts` with TanStack Query hooks (`useProductSettings`, `useDiscountSettings`, `useCreateSetting`, `useUpdateSettingField`, `useArchiveSetting`).
+6. Create `src/composables/useExternalEvents.ts` with TanStack Query hook `useExternalEvents`.
+7. Add comprehensive unit tests in `src/api/client.test.ts`, `src/composables/useSettings.test.ts`, and `src/composables/useExternalEvents.test.ts`.
+8. Update `README.md` to note consumed API surface.
+9. Run lint, test:coverage, and build.
+
+### Summary & Test Results
+- Added full OpenAPI model types (`ProductSetting`, `DiscountSetting`, `Setting`, `ExternalEvent`, `Breadcrumb`, create/update types) and narrowing helpers (`isProductSetting`, `isDiscountSetting`) to `src/api/types.ts`.
+- Added `listSettings`, `createSetting`, `getSetting`, `updateSetting`, and `listExternalEvents` methods to `src/api/client.ts` with offset/size headers and query param formatting.
+- Created `src/composables/useSettings.ts` with active-only filters (`useProductSettings`, `useDiscountSettings`), mutations for create, field update, and variant-aware soft delete archiving.
+- Created `src/composables/useExternalEvents.ts` with reactive source filtering, default `created.at_time` descending order, and pagination support.
+- Unit tests written and verified in `src/api/types.test.ts`, `src/api/client.test.ts`, `src/composables/useSettings.test.ts`, `src/composables/useExternalEvents.test.ts`.
+- Updated `README.md` architecture section.
+- `npm run lint` passed with 0 errors.
+- `npm run test:coverage` passed with 45/45 tests; Coverage exceeded standards:
+  - `src/api/**`: 100% lines, 100% functions, 97.29% branches.
+  - `src/composables/**`: 98.37% lines, 100% functions, 75.34% branches.
+- `npm run build` passed cleanly.
