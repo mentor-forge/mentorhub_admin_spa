@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { hasStoredRole, redirectToIdpLogin, useAuth } from '@mentor-forge/mentorhub_spa_utils'
+import { buildJourneyUrl, hasStoredRole, redirectToIdpLogin, useAuth } from '@mentor-forge/mentorhub_spa_utils'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -7,12 +7,6 @@ const router = createRouter({
     {
       path: '/',
       redirect: '/admin'
-    },
-    {
-      path: '/home',
-      name: 'Home',
-      component: () => import('@/pages/HomePage.vue'),
-      meta: { requiresAuth: true }
     },
     {
       path: '/admin',
@@ -34,7 +28,8 @@ router.beforeEach((to, _from, next) => {
 
   const requiredRole = to.meta.requiresRole as string | undefined
   if (requiredRole && !hasStoredRole(requiredRole)) {
-    next({ name: 'Home' })
+    window.location.replace(buildJourneyUrl('discovery', ''))
+    next(false)
     return
   }
 
@@ -46,3 +41,4 @@ router.afterEach(() => {
 })
 
 export default router
+

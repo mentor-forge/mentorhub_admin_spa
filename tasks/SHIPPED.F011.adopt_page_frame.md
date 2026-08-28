@@ -1,6 +1,6 @@
 # F011 – Adopt spa_utils `PageFrame`, remove local chrome and the Home page
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F010_pin_spa_utils_1_0_0`  
 **Description**: Replace this SPA's local app bar, navigation drawer, and logout handler with the imported `PageFrame`, and delete the local Home page that duplicates Discovery. Provide runtime editor config at the app root so later Settings tabs can use spa_utils editors without touching `src/App.vue` again. Routes keep their current paths in this task; the `/admin/` base path and route restructure are F012.
@@ -83,4 +83,18 @@ Do not pass disallowed `PageFrame` props. Do not change `vite.config.ts`, `nginx
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Refactor `src/App.vue`: wrap `PageFrame` with `page-title="Admin"`, provide editor config via `provideEditorConfig(config)`, remove local app bar / drawer / logout chrome.
+2. Update `src/router/index.ts`: remove `/home` route; update role gate fallback to navigate to Discovery home via `buildJourneyUrl('discovery', '')` and `window.location.replace()`.
+3. Delete `src/pages/HomePage.vue`.
+4. Update `README.md` Architecture Overview.
+5. Run lint, unit tests, and build.
+
+### Summary & Test Results
+- Replaced local app bar/drawer/logout chrome in `src/App.vue` with `PageFrame` (page-title="Admin") and wired `provideEditorConfig(config)`.
+- Removed `HomePage` route from `src/router/index.ts` and updated role gate fallback to redirect to Discovery journey home via `buildJourneyUrl('discovery', '')`.
+- Deleted `src/pages/HomePage.vue`.
+- Updated `README.md` to reflect `PageFrame` navigation shell.
+- `npm run lint` passed with 0 errors.
+- `npm run test` passed (25/25 tests across 5 test files).
+- `npm run build` completed successfully.

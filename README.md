@@ -48,13 +48,14 @@ npm run container
 ```
 src/
   api/              # API client (config only for MVP shell)
-  pages/            # HomePage, AdminPage
+  pages/            # AdminPage (runtime config viewer)
   composables/      # useAuth (spa_utils re-export), useConfig, useRoles
   router/           # Auth guards; default route /admin
   plugins/          # Vuetify
 ```
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** for auth, `AdminPage`, and shared utilities.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation shell (catalog and Products lists live on Discovery).
+
 
 ## Local Ports
 
