@@ -1,6 +1,6 @@
 # F017 – `/admin/logs` external-event list, most recent first, filterable by source
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F016_settings_tabs_page`  
 **Description**: Fill in the `/logs` placeholder with a read-only list of `ExternalEvent` ingress records ordered newest first, with a source filter (All / Cognito / Stripe) and access to each record's normalized payload.
@@ -72,4 +72,17 @@ Paths are relative to **this SPA repository root**.
 
 ## Execution Notes
 
-_Reserved for the task execution agent: plan, commands run, test results, follow-ups._
+### Plan
+1. Implement `src/pages/LogsPage.vue` with `admin-logs-page` container, `admin-logs-source-select` (All, Cognito, Stripe) syncing with `?source=`, dense `admin-logs-table`, expandable rows (`admin-logs-detail-toggle`, `admin-logs-detail-display`), `formatDate` from `spa_utils`, load more button `admin-logs-load-more-button`, empty state `admin-logs-empty`, and error alert `admin-logs-error`.
+2. Connect `useExternalEvents`.
+3. Create `src/pages/LogsPage.test.ts` covering initial render, source filtering with query param sync, row detail toggle, load-more pagination, empty and error states.
+4. Update `README.md` with Logs page description.
+5. Run lint, unit tests, and build.
+
+### Summary & Test Results
+- Implemented `src/pages/LogsPage.vue` with source filter `admin-logs-source-select` (All/Cognito/Stripe) synced with URL query `?source=`, refresh button, dense `admin-logs-table`, per-row expand toggle (`admin-logs-detail-toggle`) displaying formatted JSON (`admin-logs-detail-display`), payload hash, and correlation ID, and `admin-logs-load-more-button` for offset/size header pagination.
+- Created `src/pages/LogsPage.test.ts` with 8 unit tests covering table rendering, query param sync, row detail toggle, manual refresh, empty state, error alert, and load-more appending.
+- Updated `README.md` with Logs page feature summary.
+- `npm run lint` passed with 0 errors.
+- `npm run test` (69/69) and `npm run test:coverage` passed.
+- `npm run build` passed cleanly.

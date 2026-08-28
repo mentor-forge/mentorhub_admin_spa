@@ -74,6 +74,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation
 ### Settings & Logs Features
 
 - **Settings (`/admin/settings`)**: Tabbed interface with **Products** and **Discounts** spreadsheet tables using `SettingsTableEditor`. Features inline editing with save-on-blur, quick row creation via Add button, and soft-delete archiving (`status: 'archived'` for Products, `status: 'inactive'` for Discounts). Active tab is synchronized with URL query `?tab=products|discounts`.
+- **Logs (`/admin/logs`)**: Read-only external event ingress audit list ordered newest first. Features reactive provider filtering (`All`, `Cognito`, `Stripe`) synchronized with URL query `?source=`, expandable row details with formatted JSON payloads, manual refresh, and offset/size paging via "Load More".
 
 ## Local Ports
 
