@@ -10,6 +10,9 @@ export default defineConfig({
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     video: false,
     screenshotOnRunFailure: true,
+    // Role-guard redirects leave :8390 for welcome :8080/discovery/. Without this,
+    // Cypress waits forever for the abandoned :8390 load event after location.replace.
+    chromeWebSecurity: false,
     env: {
       JWT_SECRET: e2eDefaultJwtSecret(),
     },

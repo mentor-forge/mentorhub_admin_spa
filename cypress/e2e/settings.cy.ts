@@ -4,7 +4,7 @@ describe('Settings Page (Products & Discounts)', () => {
   })
 
   it('renders products tab by default and switches tabs with URL query sync', () => {
-    cy.visit('/admin/settings')
+    cy.visitPrefixed('/admin/settings')
 
     cy.get('[data-automation-id="admin-settings-page"]').should('be.visible')
     cy.get('[data-automation-id="admin-settings-tab-products"]').should('be.visible')
@@ -22,14 +22,14 @@ describe('Settings Page (Products & Discounts)', () => {
   })
 
   it('deep-links directly to discounts tab via ?tab=discounts', () => {
-    cy.visit('/admin/settings?tab=discounts')
+    cy.visitPrefixed('/admin/settings?tab=discounts')
 
     cy.get('[data-automation-id="admin-settings-page"]').should('be.visible')
     cy.get('[data-automation-id="admin-discounts-table"]').should('be.visible')
   })
 
   it('creates, edits, and archives a product row', () => {
-    cy.visit('/admin/settings')
+    cy.visitPrefixed('/admin/settings')
     cy.get('[data-automation-id="admin-products-table"]').should('be.visible')
 
     // Add a new product
@@ -67,7 +67,7 @@ describe('Settings Page (Products & Discounts)', () => {
   })
 
   it('creates, edits, and archives a discount row', () => {
-    cy.visit('/admin/settings?tab=discounts')
+    cy.visitPrefixed('/admin/settings?tab=discounts')
     cy.get('[data-automation-id="admin-discounts-table"]').should('be.visible')
 
     // Add a new discount

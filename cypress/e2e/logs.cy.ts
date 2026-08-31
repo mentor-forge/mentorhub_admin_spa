@@ -4,7 +4,7 @@ describe('Logs Page (External Events)', () => {
   })
 
   it('renders logs page chrome, source selector, and table', () => {
-    cy.visit('/admin/logs')
+    cy.visitPrefixed('/admin/logs')
 
     cy.get('[data-automation-id="admin-logs-page"]').should('be.visible')
     cy.get('[data-automation-id="admin-logs-source-select"]').should('be.visible')
@@ -13,7 +13,7 @@ describe('Logs Page (External Events)', () => {
   })
 
   it('filters external events by source and syncs with URL query parameter', () => {
-    cy.visit('/admin/logs')
+    cy.visitPrefixed('/admin/logs')
 
     // Filter by Stripe
     cy.get('[data-automation-id="admin-logs-source-select"]').click()
@@ -32,7 +32,7 @@ describe('Logs Page (External Events)', () => {
   })
 
   it('refreshes logs on clicking the Refresh button', () => {
-    cy.visit('/admin/logs')
+    cy.visitPrefixed('/admin/logs')
     cy.get('[data-automation-id="admin-logs-refresh-button"]').click()
     cy.get('[data-automation-id="admin-logs-table"]').should('be.visible')
   })
