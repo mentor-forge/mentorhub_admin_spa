@@ -1,9 +1,11 @@
 <template>
-  <AdminPage
-    :config="config ?? null"
-    :is-loading="isLoading"
-    :error="error ?? null"
-  />
+  <div data-automation-id="admin-config-page">
+    <AdminPage
+      :config="config ?? null"
+      :is-loading="isLoading"
+      :error="error ?? null"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
+  base: '/admin/',
   plugins: [vue()],
   test: {
     server: {
@@ -26,6 +27,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
+        'cypress/**',
         'src/main.ts',
         'src/App.vue',
         'src/vite-env.d.ts',
@@ -38,6 +40,7 @@ export default defineConfig({
         '**/*.spec.ts',
         '**/*.test.ts',
         'src/api/types.ts', // Type-only file, cannot have coverage
+        'src/components/settingsTable.ts', // Type-only file, cannot have coverage
       ],
       thresholds: {
         'src/api/**': {

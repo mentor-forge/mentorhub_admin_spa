@@ -1,6 +1,6 @@
-# API Task Automation Framework - Orchestration
+# SPA Task Automation Framework - Orchestration
 
-This folder contains coding tasks that an orchestration agent can execute, based on the context and instructions in each task file. All of these tasks will only make changes in this SPA repo. The agent will first help to plan tasks, and then orchestrate execution of all Pending Tasks to implement a Feature.
+This folder contains coding tasks that an orchestration agent can execute, based on the context and instructions in each task file. All of these tasks will only make changes in this API repo. The agent will first help to plan tasks, and then orchestrate execution of all Pending Tasks to implement a Feature.
 
 ## Orchestration model: Feature Workflow
 
@@ -11,8 +11,8 @@ Now orchestrate all Pending Tasks as outlined below. Use an **orchestration agen
 1. **Orchestrator** discovers all tasks, respects dependencies, and determines execution order.
    - **Task Selection**: Select only `PENDING.*` tasks.
    - **Execution order**: Review all PENDING tasks and order dependencies first.
-   - **Concurrent** all tasks should be executed serially
-2. **For each task**, the orchestrator launches a new agent with:
+   - Do not schedule **concurrent** agents to avoid testing collisions.
+2. **For each task**, the orchestrator selects an appropriate model for the task. Most tasks should not require high reasoning models. Never use GROK models. Launch a new agent with:
    - The task file path
    - Any outputs from prior tasks (e.g. "L010 complete; Profile schema updated in openapi.yaml")
 3. **Sub-agent** executes only that task: read context, implement, test, update task notes.
@@ -23,7 +23,14 @@ Now orchestrate all Pending Tasks as outlined below. Use an **orchestration agen
 
 **Task Failure Case**: In the event a task fails, execution should halt and the developer should receive a summary of the current state and error condition that caused the failure.
 
-**All Tasks Complete**: Once all tasks have successfully completed, the orchestration agent should create a Pull Request in **this SPA repository** with a meaningful summary of all the commits made during the workflow. Notify the developer that the workflow was completed and provide a link to the PR.
+**Mandatory Pre-PR QA Gate**:
+Before opening a Pull Request, the orchestration agent MUST execute the full end-to-end integration and packaging gate:
+```bash
+npm run container && npm run api && npm run cypress:run
+```
+All E2E tests must pass 100%. If any test fails, pause and resolve the failure before proceeding.
+
+**All Tasks Complete**: Once all tasks and the mandatory Pre-PR QA Gate have successfully completed, the orchestration agent should create a Pull Request in **this API repository** with a meaningful summary of all the commits made during the workflow. Notify the developer that the workflow was completed and provide a link to the PR.
 
 ## Implementation Details
 - **Recommended filename pattern**:
@@ -35,7 +42,7 @@ Now orchestrate all Pending Tasks as outlined below. Use an **orchestration agen
     - `SHIPPED.L010.update_profile_openapi.md`
 
 - **External prerequisites**
-  - Work in other repositories (MongoDB dictionary changes, API) is **not** orchestrated from this folder.
+  - Work in other repositories (MongoDB dictionary changes, SPA UI) is **not** orchestrated from this folder.
   - Record external preconditions under **Context** or set **Status** to `Blocked` until a human confirms they are satisfied.
   - **Depends On** references only tasks in **this repo's** `tasks/` folder.
 
@@ -56,3 +63,4 @@ The steps below apply to the agent that executes a task.
 
 3. **Completion and documentation**
    - After successful testing, update **Execution Notes** with summary and test results.
+   - The sub agent does not need to commit changes, the orchestrating agent handles that.
