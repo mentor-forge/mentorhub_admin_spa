@@ -1,16 +1,6 @@
 /**
- * Navigation chrome coverage for the spa_utils `PageFrame` 1.0.1 catalog under `/admin/`.
- *
- * Every automation id asserted here is compiled into `@mentor-forge/mentorhub_spa_utils`
- * (`nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`,
- * `nav-events-link`, `nav-notifications-link`, `nav-settings-link`, `nav-logout-link`).
- * This SPA defines no `nav-*` id of its own.
- *
- * Removed hamburger ids (`nav-products-link`, `nav-customer-link`,
- * `nav-customer-members-link`) must stay absent for the admin role checked here.
- *
- * This SPA does not host Events — assert `nav-events-link` href only.
- * `cy.login()` with no argument seeds an **admin** token; roles are picked deliberately.
+ * Host routing and PageFrame wiring for Admin.
+ * Hamburger catalog role gates and collection hrefs are covered in spa_utils.
  */
 describe('Navigation (spa_utils PageFrame)', () => {
   const APP_ORIGIN = Cypress.config('baseUrl') as string
@@ -18,12 +8,6 @@ describe('Navigation (spa_utils PageFrame)', () => {
   const CONFIG_PATHNAME = '/admin/config'
   const IDP_STUB_PATHNAME = '/login.html'
   const SETTINGS_HREF = `${APP_ORIGIN}${CONFIG_PATHNAME}`
-
-  const removedCatalogIds = [
-    'nav-products-link',
-    'nav-customer-link',
-    'nav-customer-members-link',
-  ]
 
   const adminConfigBody = {
     config_items: [],
@@ -52,53 +36,8 @@ describe('Navigation (spa_utils PageFrame)', () => {
     }).as('getIdpLogin')
   }
 
-  function openDrawer() {
-    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
-    cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-  }
-
   function stubAdminConfig() {
     cy.intercept('GET', '**/admin/api/config', adminConfigBody).as('getAdminConfig')
-  }
-
-  /** Ordered automation ids of the catalog rows (the drawer's first list, above the divider). */
-  function drawerCatalogIds() {
-    return cy
-      .get('.v-navigation-drawer .v-list')
-      .first()
-      .find('[data-automation-id]')
-      .then(($rows) => [...$rows].map((row) => row.getAttribute('data-automation-id') ?? ''))
-  }
-
-  function assertRemovedCatalogRows() {
-    removedCatalogIds.forEach((automationId) => {
-      cy.get(`[data-automation-id="${automationId}"]`).should('not.exist')
-    })
-  }
-
-  function assertAlbHref(automationId: string, expectedPath: string) {
-    cy.get(`[data-automation-id="${automationId}"]`)
-      .should('match', 'a')
-      .and('have.attr', 'href')
-      .then((href) => {
-        const url = new URL(String(href))
-        expect(url.port, `${automationId} port`).to.equal('8080')
-        expect(url.pathname, `${automationId} pathname`).to.equal(expectedPath)
-        expect(String(href)).not.to.include(':8390')
-        expect(String(href)).not.to.include('/admin/admin')
-      })
-  }
-
-  function assertHostingSettingsHref() {
-    cy.get('[data-automation-id="nav-settings-link"]')
-      .should('have.attr', 'href', SETTINGS_HREF)
-      .and(($link) => {
-        const href = $link.attr('href') ?? ''
-        expect(href).to.include(':8390')
-        expect(href).not.to.include(':8080')
-        expect(href).not.to.include('/admin/settings')
-        expect(href).not.to.include('/admin/admin')
-      })
   }
 
   beforeEach(() => {
@@ -132,7 +71,7 @@ describe('Navigation (spa_utils PageFrame)', () => {
     })
   })
 
-  it('should show Admin chrome, profile link, and admin drawer catalog', () => {
+  it('shows Admin PageFrame chrome and hosts Settings at /admin/config', () => {
     stubAdminConfig()
     cy.login(['admin'])
     cy.wait('@getAdminConfig')
@@ -140,27 +79,13 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="page-frame-title"]')
       .should('be.visible')
       .and('contain.text', 'Admin')
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible')
+    cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
 
-    assertAlbHref('nav-profile-link', '/customer/profile/')
-
-    openDrawer()
-    drawerCatalogIds().should('deep.equal', [
-      'nav-home-link',
-      'nav-events-link',
-      'nav-notifications-link',
-      'nav-settings-link',
-    ])
-    assertAlbHref('nav-home-link', '/discovery/')
-    assertAlbHref('nav-events-link', '/discovery/events')
-    assertAlbHref('nav-notifications-link', '/discovery/notifications')
-    cy.get('[data-automation-id="nav-resources-link"]').should('not.exist')
-    cy.get('[data-automation-id="nav-paths-link"]').should('not.exist')
-    cy.get('[data-automation-id="nav-plans-link"]').should('not.exist')
-    assertRemovedCatalogRows()
-    assertHostingSettingsHref()
-    cy.get('[data-automation-id="nav-logout-link"]').scrollIntoView().should('be.visible')
-
-    cy.get('[data-automation-id="nav-settings-link"]').click()
+    cy.get('[data-automation-id="nav-drawer-toggle"]').click({ force: true })
+    cy.get('[data-automation-id="nav-settings-link"]')
+      .should('have.attr', 'href', SETTINGS_HREF)
+      .click()
     cy.wait('@getAdminConfig')
     cy.location('origin').should('eq', APP_ORIGIN)
     cy.location('pathname').should('eq', CONFIG_PATHNAME)
@@ -191,8 +116,6 @@ describe('Navigation (spa_utils PageFrame)', () => {
 
   it('redirects unauthenticated visitor to login with prefixed return_to', () => {
     stubIdpLoginUri()
-    // Plain `cy.visit`: the guard leaves for the IdP during bootstrap, so by the time
-    // `cy.visitPrefixed` could read the navigation entry the document is the IdP stub.
     cy.visit('/admin/settings')
 
     cy.location('pathname', { timeout: 10000 }).should('eq', IDP_STUB_PATHNAME)
@@ -250,7 +173,7 @@ describe('Navigation (spa_utils PageFrame)', () => {
     stubIdpLoginUri()
     cy.login(['admin'])
 
-    openDrawer()
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
     cy.get('[data-automation-id="nav-logout-link"]').should('be.visible').click()
 
     cy.location('pathname', { timeout: 10000 }).should('eq', IDP_STUB_PATHNAME)
