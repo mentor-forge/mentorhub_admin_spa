@@ -1,6 +1,6 @@
 # F020 – Host packaged `AdminPage` at `/admin/config` (hamburger Settings)
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F019_pin_spa_utils_1_0_1`  
 **Description**: Confirm Vue `path: '/config'` under the existing journey `base` so hamburger Settings (`hostingConfigHref()`) lands on **this** SPA at `/admin/config`. Reuse the existing packaged `AdminPage` wrapper. Keep `/admin/settings` as the Products / Discounts **detail** page — it is **not** the hamburger Settings target after 1.0.1. Gate `/config` with the **admin** role; non-admins redirect away. Do not pass nav config into `PageFrame`.
@@ -74,4 +74,14 @@ Do not add Events or list pages. Do not pass disallowed `PageFrame` props. Do no
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+**Plan (pre-implementation):** Read router, AdminPage, App.vue, vite.config. Expect `/config` → AdminPage.vue with `requiresAuth` + `requiresRole: 'admin'`; `/settings` → SettingsPage; no PageFrame nav props. If router already correct, skip `src/router/index.ts` and AdminPage changes. Primary deliverable: README In-App Route Table + ownership notes naming `/admin/config` as hamburger Settings host (`hostingConfigHref()` → `{origin}/admin/config`, stays on hosting origin). Optional router unit test skipped — existing guard pattern already matches `/settings` and `/logs`.
+
+**Result:** Router and AdminPage were already correct; no code changes required. README updated to document `/admin/config` as the hamburger Settings / AdminPage host and clarify `/admin/settings` is Products / Discounts only (not `nav-settings-link`).
+
+**Testing:** All required commands passed from repo root:
+- `npm run lint` — clean
+- `npm run test` — 69/69 passed (10 files)
+- `npm run test:coverage` — thresholds unchanged (98.27% stmts)
+- `npm run build` — clean
+
+No router unit test added (optional; router already matched `/settings`/`/logs` guard pattern).

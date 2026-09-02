@@ -36,9 +36,11 @@ Vue route `path` strings stay unprefixed. Vite `base: '/admin/'` prefixes the br
 | Browser URL | Vue Path | Page |
 |---|---|---|
 | `http://localhost:8390/admin/` | `/` | redirect → `/settings` |
-| `http://localhost:8390/admin/settings` | `/settings` | `SettingsPage.vue` (Products / Discounts) |
+| `http://localhost:8390/admin/settings` | `/settings` | `SettingsPage.vue` (Products / Discounts detail — **not** hamburger Settings) |
 | `http://localhost:8390/admin/logs` | `/logs` | `LogsPage.vue` (external-event audit) |
-| `http://localhost:8390/admin/config` | `/config` | `AdminPage.vue` (runtime-config viewer) |
+| `http://localhost:8390/admin/config` | `/config` | `AdminPage.vue` (hamburger **Settings** host — Token / Config Items / Versions / Enumerators) |
+
+Hamburger **Settings** (`nav-settings-link`) uses spa_utils `hostingConfigHref()` → `{origin}/admin/config` on the **hosting origin** (welcome `:8080` when entered through ALB; `:8390` during direct-port debug). It does **not** rewrite to welcome `:8080` from a debug port and does **not** target `/admin/settings`.
 
 ## Developer Commands
 
@@ -99,13 +101,13 @@ src/
 
 | Layer | Owns |
 |-------|------|
-| **This SPA** | Admin journey pages (`/settings`, `/logs`, `/config`), page state, Setting / ExternalEvent API client, `SettingsTableEditor` presentation |
+| **This SPA** | Admin journey pages: `/config` (hamburger Settings / packaged AdminPage), `/settings` (Products / Discounts detail), `/logs`; page state; Setting / ExternalEvent / Config API client; `SettingsTableEditor` presentation |
 | **`spa_utils` 1.0.1** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome, role-gated hamburger catalog (Home, Events, Resources, Paths, Plans; Notifications and Settings **admin-only**; empty/missing roles → Home + Events only), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
 | **Discovery SPA** | Products collection browsing (`/discovery/products`); this SPA must not host a Products list |
 | **nginx (this container)** | `/admin/` document prefix, SPA history fallback, `/admin/api/` → `admin_api`, dual runtime-config paths, cache headers |
 | **Admin API** | Authorization enforcement (`admin` role), Setting mutations, ExternalEvent reads, webhook ingress (never under `/admin/`) |
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` (F020 owns documenting that route as the Settings host); Products / Customer / Customer Members are **not** drawer rows.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination.
 
 ### Deployment Prefix & Runtime Config Invariants
 
@@ -117,9 +119,10 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation
 - Runtime config is injected at container start from compose `IDP_LOGIN_URI` — it is not baked into the immutable build artifact.
 - Webhook ingress (Stripe/Cognito) is served on Admin API directly and is **never** exposed under `/admin/`.
 
-### Settings & Logs Features
+### Admin Config, Settings & Logs Features
 
-- **Settings (`/admin/settings`)**: Tabbed **Products** and **Discounts** tables via local `SettingsTableEditor` (harvest-compatible prop contract; cells use spa_utils `SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`). Soft-delete archives (`status: 'archived'` Products, `status: 'inactive'` Discounts). Active tab syncs with `?tab=products|discounts`.
+- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`); Token claim element ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.1 `TokenClaimsCard`.
+- **Settings (`/admin/settings`)**: Tabbed **Products** and **Discounts** tables via local `SettingsTableEditor` (harvest-compatible prop contract; cells use spa_utils `SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`). Soft-delete archives (`status: 'archived'` Products, `status: 'inactive'` Discounts). Active tab syncs with `?tab=products|discounts`. Journey-specific detail page — not the hamburger Settings target.
 - **Logs (`/admin/logs`)**: Read-only external-event ingress audit, newest first, provider filter (`All` / `Cognito` / `Stripe`) via `?source=`, expandable JSON detail, offset/size "Load More".
 
 ### Harvest Candidate (keep local until second consumer)
@@ -144,7 +147,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation
 Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
 
 - Always present when authenticated: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
-- Role-gated (`admin`): `nav-resources-link`, `nav-paths-link`, `nav-plans-link`, `nav-notifications-link`, `nav-settings-link` (Settings href is hosting `/config` via `hostingConfigHref()` once F020 ships; `/admin/settings` remains the Products / Discounts detail page)
+- Role-gated (`admin`): `nav-resources-link`, `nav-paths-link`, `nav-plans-link`, `nav-notifications-link`, `nav-settings-link` (Settings href is `{origin}/admin/config` via `hostingConfigHref()`; `/admin/settings` is the Products / Discounts detail page, not this link)
 
 **Removed in 1.0.1:** `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`. Cypress catalog assertions are updated in F021.
 
