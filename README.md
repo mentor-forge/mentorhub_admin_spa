@@ -102,12 +102,12 @@ src/
 | Layer | Owns |
 |-------|------|
 | **This SPA** | Admin journey pages: `/config` (hamburger Settings / packaged AdminPage), `/settings` (Products / Discounts detail), `/logs`; page state; Setting / ExternalEvent / Config API client; `SettingsTableEditor` presentation |
-| **`spa_utils` 1.0.1** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome, role-gated hamburger catalog (Home, Events, Resources, Paths, Plans; Notifications and Settings **admin-only**; empty/missing roles → Home + Events only), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
+| **`spa_utils` 1.0.2** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome, role-gated hamburger catalog (Home, Resources, Paths for any authenticated user; Plans **mentor**; Notifications, Events, and Settings **admin-only**), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
 | **Discovery SPA** | Products collection browsing (`/discovery/products`); this SPA must not host a Products list |
 | **nginx (this container)** | `/admin/` document prefix, SPA history fallback, `/admin/api/` → `admin_api`, dual runtime-config paths, cache headers |
 | **Admin API** | Authorization enforcement (`admin` role), Setting mutations, ExternalEvent reads, webhook ingress (never under `/admin/`) |
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.2** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination.
 
 ### Deployment Prefix & Runtime Config Invariants
 
@@ -121,7 +121,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation
 
 ### Admin Config, Settings & Logs Features
 
-- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`); Token claim element ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.1 `TokenClaimsCard`.
+- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`); Token claim element ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.2 `TokenClaimsCard`.
 - **Settings (`/admin/settings`)**: Tabbed **Products** and **Discounts** tables via local `SettingsTableEditor` (harvest-compatible prop contract; cells use spa_utils `SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`). Soft-delete archives (`status: 'archived'` Products, `status: 'inactive'` Discounts). Active tab syncs with `?tab=products|discounts`. Journey-specific detail page — not the hamburger Settings target.
 - **Logs (`/admin/logs`)**: Read-only external-event ingress audit, newest first, provider filter (`All` / `Cognito` / `Stripe`) via `?source=`, expandable JSON detail, offset/size "Load More".
 
