@@ -138,7 +138,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation
 ### E2E Tests
 - Cypress against the packaged SPA on `http://localhost:8390` (`npm run service` must be running; do not run `npm run dev` at the same time)
 - Prefer `cy.visitPrefixed(...)` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (admin catalog + mentee role-guard redirect to Discovery), Discovery / Settings ALB hrefs, and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy)
+- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (admin catalog + mentee role-guard redirect to Discovery), Discovery / Events ALB hrefs, Settings on hosting `/admin/config`, and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy)
 - UI role gating is UX; API authorization is proven separately via Bearer requests through `/admin/api/`
 - `chromeWebSecurity: false` is required so Cypress can observe the role-guard's cross-origin `location.replace` to welcome `:8080/discovery/` (localStorage does not cross `:8390` → `:8080`)
 
@@ -146,8 +146,9 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation
 
 Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
 
-- Always present when authenticated: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
-- Role-gated (`admin`): `nav-resources-link`, `nav-paths-link`, `nav-plans-link`, `nav-notifications-link`, `nav-settings-link` (Settings href is `{origin}/admin/config` via `hostingConfigHref()`; `/admin/settings` is the Products / Discounts detail page, not this link)
+- Always present when an authenticated user can remain on this SPA: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
+- Role-gated (`admin`): `nav-notifications-link`, `nav-settings-link` (Settings href is `{origin}/admin/config` via `hostingConfigHref()`; `/admin/settings` is the Products / Discounts detail page, not this link)
+- Role-gated (`mentor`): `nav-resources-link`, `nav-paths-link`, `nav-plans-link` (not visible in this SPA's packaged drawer because every local route requires `admin`)
 
 **Removed in 1.0.1:** `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`. Cypress catalog assertions are updated in F021.
 

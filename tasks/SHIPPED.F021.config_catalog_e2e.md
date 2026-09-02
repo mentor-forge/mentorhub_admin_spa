@@ -1,6 +1,6 @@
 # F021 – 1.0.1 catalog, `/admin/config` Cypress and packaging
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F020_host_admin_page_at_config`  
 **Description**: Point Cypress at the spa_utils **1.0.1** hamburger catalog, prove Settings opens this SPA’s `/admin/config` (not `/admin/settings`), cover Token claims, admin-gate `/config`, and verify logout `return_to=/discovery/`. Run the packaged SPA as the acceptance gate for F-AS03.
@@ -92,4 +92,26 @@ Do not restore a local drawer. Do not change the spa_utils pin. Do not add an Ev
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+Plan:
+- Update `cypress/e2e/navigation.cy.ts` for the spa_utils 1.0.1 catalog: admin drawer ordering, Events href on welcome `:8080`, removed hamburger ids, Settings href on the hosting `:8390/admin/config`, AdminPage Token tab claims, non-admin `/admin/config` redirect boundary, and logout `return_to=http://localhost:8080/discovery/`.
+- Leave `cypress/e2e/settings.cy.ts` on `/admin/settings` and keep `logs.cy.ts` unchanged unless Cypress exposes a selector break.
+- Update `README.md` Testing / Automation Support wording so it reflects 1.0.1 drawer ids and the `/admin/config` Settings host.
+- Run the required lint, unit, coverage, build, container, service, and packaged Cypress checks from the repo root. Use `GITHUB_FOREVER_TOKEN` as `GITHUB_TOKEN` and `IDP_LOGIN_URI=http://127.0.0.1:8080/login.html` only if needed for packaging/service.
+
+Implemented:
+- Updated `cypress/e2e/navigation.cy.ts` to assert the 1.0.1 admin catalog order (`Home`, `Events`, `Notifications`, `Settings`), welcome-origin Home / Events / Notifications hrefs, removed Products / Customer / Customer Members drawer ids, absent mentor browse rows for admin, Settings `href=http://localhost:8390/admin/config` before click, `/admin/config` after click, Token claim ids/values, admin and non-admin `/admin/config` guard behavior, and logout `return_to=http://localhost:8080/discovery/`.
+- Kept `cypress/e2e/settings.cy.ts` on `/admin/settings`; no changes were needed in `settings.cy.ts`, `logs.cy.ts`, `deployment.cy.ts`, support commands, fixtures, router, or the spa_utils pin.
+- Updated `README.md` Testing / Automation Support to describe 1.0.1 drawer ids, admin-only Notifications / Settings, mentor-only browse rows, removed Products / Customer / Customer Members ids, and `/admin/config` as the hamburger Settings host.
+
+Test results:
+- `npm run lint` — passed (`vue-tsc --noEmit`).
+- `npm run test` — passed: 10 test files, 69 tests.
+- `npm run test:coverage` — passed: 10 test files, 69 tests; all files coverage 98.27% statements, 82.78% branches, 93.75% functions, 98.27% lines.
+- `npm run build` — passed; Vite emitted existing warnings for non-module `/admin/runtime-config.js` script bundling and chunks over 500 kB.
+- `npm run container` — passed; built `ghcr.io/mentor-forge/mentorhub_admin_spa:latest` (`sha256:751dfcc00727dbaa1cec814ee7bf5e09bee584fec66c0d4b572c5818669f66cf`). Docker emitted `JSONArgsRecommended`; npm install reported 5 audit vulnerabilities and install-script warnings during image build.
+- `npm run service` — passed; `mh down && mh up admin && npm run open` started db, API, welcome, and Admin SPA containers.
+- `npm run cypress:run` — passed against `http://localhost:8390`: `deployment.cy.ts` 9/9, `logs.cy.ts` 3/3, `navigation.cy.ts` 9/9, `settings.cy.ts` 4/4; total 25/25 passing, 0 failing.
+
+Env workarounds:
+- Exported `GITHUB_TOKEN` from `GITHUB_FOREVER_TOKEN` when present before `npm run container` / `npm run service`.
+- Ran `npm run service` with `IDP_LOGIN_URI=http://127.0.0.1:8080/login.html` so logout/IdP specs stay on the local Developer Edition IdP.
