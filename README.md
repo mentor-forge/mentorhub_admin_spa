@@ -100,12 +100,12 @@ src/
 | Layer | Owns |
 |-------|------|
 | **This SPA** | Admin journey pages (`/settings`, `/logs`, `/config`), page state, Setting / ExternalEvent API client, `SettingsTableEditor` presentation |
-| **`spa_utils` 1.0.0** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome, role-gated hamburger catalog, `buildJourneyUrl` / ALB origin rules, typed editors used inside the table |
+| **`spa_utils` 1.0.1** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome, role-gated hamburger catalog (Home, Events, Resources, Paths, Plans; Notifications and Settings **admin-only**; empty/missing roles → Home + Events only), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
 | **Discovery SPA** | Products collection browsing (`/discovery/products`); this SPA must not host a Products list |
 | **nginx (this container)** | `/admin/` document prefix, SPA history fallback, `/admin/api/` → `admin_api`, dual runtime-config paths, cache headers |
 | **Admin API** | Authorization enforcement (`admin` role), Setting mutations, ExternalEvent reads, webhook ingress (never under `/admin/`) |
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.).
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.1** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` (F020 owns documenting that route as the Settings host); Products / Customer / Customer Members are **not** drawer rows.
 
 ### Deployment Prefix & Runtime Config Invariants
 
@@ -143,8 +143,10 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.0** `PageFrame` as the navigation
 
 Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
 
-- Always present when authenticated: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-notifications-link`, `nav-logout-link`
-- Role-gated (`admin`): `nav-products-link`, `nav-settings-link`
+- Always present when authenticated: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
+- Role-gated (`admin`): `nav-resources-link`, `nav-paths-link`, `nav-plans-link`, `nav-notifications-link`, `nav-settings-link` (Settings href is hosting `/config` via `hostingConfigHref()` once F020 ships; `/admin/settings` remains the Products / Discounts detail page)
+
+**Removed in 1.0.1:** `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`. Cypress catalog assertions are updated in F021.
 
 Do not define host `nav-*` ids in this SPA. Page-level ids follow `{domain}-{page}-{element}` (`admin-settings-*`, `admin-logs-*`, `admin-config-page`).
 
