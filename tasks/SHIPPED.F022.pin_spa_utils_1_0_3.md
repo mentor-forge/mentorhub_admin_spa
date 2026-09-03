@@ -1,6 +1,6 @@
 # F022 – Pin `@mentor-forge/mentorhub_spa_utils@1.0.3` (`token.display_name`)
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: _(none — first task in this wave)_  
 **Description**: This repo owns the Admin SPA **1.0.3 pin** ([F-AS04 / GitHub #8](https://github.com/mentor-forge/mentorhub_admin_spa/issues/8)). Bump `@mentor-forge/mentorhub_spa_utils` from exact `1.0.2` to exact **`1.0.3`**, refresh the lockfile from CodeArtifact, and replace any local use of token `name` with token `display_name`. Do **not** change routes in this task.
@@ -98,3 +98,55 @@ Paths are relative to **this SPA repository root**.
 Do not change the `/config`, `/settings`, or `/logs` routes. Do not pass disallowed `PageFrame` props. Do not change Cypress specs in this task unless a compile of test helpers breaks. Do not change `src/router/index.ts`, `vite.config.ts`, `nginx.conf.template`, or `Dockerfile`. Do not rename Product / Discount `name` fields.
 
 ## Execution Notes
+
+### Plan (2026-09-03)
+
+Reviewed context, spa_utils 1.0.3 README (`TokenClaimsCard` / `PageFrame` own `display_name`), and local sources.
+
+**Pin**
+- Bump `package.json` `"@mentor-forge/mentorhub_spa_utils"` from exact `1.0.2` to exact `1.0.3` (no caret).
+- Run `mh`, confirm `npm view @mentor-forge/mentorhub_spa_utils version` is `1.0.3`. If missing, Blocked + stop.
+- `npm install --include=dev` to refresh `package-lock.json` from CodeArtifact.
+
+**Local token-claim alignment**
+- No production or unit-test reads of token `name`. Remaining `name` hits are Product / Discount / enumerator / collection / Vue route names.
+- `ConfigResponse.token` is `{ claims?: Record<string, unknown> }` — no display-field alias to rename. Do **not** invent a nested-vs-flat layer or add speculative `display_name` typing. Keep `AdminPage` pass-through of `config.token`.
+- Fixtures in `types.test.ts` / `client.test.ts` / `useConfig.test.ts` / `useRoles.test.ts` do not model a token display claim as `name`. Leave them unchanged.
+- Cypress subpaths (`cypress/jwtDefaults`, `cypress/registerJwtSignTask`, `cypress/registerAuthCommands`) unchanged in 1.0.3 source. Touch `cypress.config.ts` / `e2e.ts` only if install/compile fails.
+- `vitest.config.ts` already inlines `@mentor-forge/mentorhub_spa_utils`. Change only if 1.0.3 requires it.
+
+**Docs**
+- `README.md`: pin **1.0.3**; document Token-tab `display_name` (`admin-token-display-name-display`) and PageFrame chrome `nav-profile-name-display` as spa_utils 1.0.3 ownership. Keep `/admin/config` vs `/admin/settings` wording.
+
+**Out of scope**
+- No route changes. No `PageFrame` prop additions. No Cypress spec rewrites. No F023 packaging.
+
+**Tests** (from repo root): `mh` → `npm install --include=dev` → `npm ls` → confirmation `rg` → `lint` / `test` / `test:coverage` / `build`. No Cypress.
+
+### Summary (2026-09-03)
+
+Pinned `@mentor-forge/mentorhub_spa_utils` to exact **1.0.3** from CodeArtifact. No local token `name` → `display_name` source change was required: `ConfigResponse.token` remains `{ claims?: Record<string, unknown> }`, `AdminPage` still passes `config.token` through, and remaining `name` hits are Product / Discount / enumerator / collection / Vue names. Cypress subpaths and Vitest inline setting were unchanged. README now documents 1.0.3 ownership of Token-tab `admin-token-display-name-display` and PageFrame `nav-profile-name-display`. F023 left untouched.
+
+**Files changed**
+- `package.json` — pin `1.0.3`
+- `package-lock.json` — resolved `https://mentor-forge-560167829275.d.codeartifact.us-east-1.amazonaws.com/npm/mentorhub-npm/@mentor-forge/mentorhub_spa_utils/-/mentorhub_spa_utils-1.0.3.tgz`
+- `README.md` — version + Token / chrome `display_name` ownership
+- this task file (plan, results, status)
+
+**Pin confirmation**
+- `npm view @mentor-forge/mentorhub_spa_utils version` → `1.0.3`
+- `npm ls @mentor-forge/mentorhub_spa_utils` → `@mentor-forge/mentorhub_spa_utils@1.0.3`
+
+**Confirmation searches**
+- `rg 'token\.name|token\[.name.\]|token\.get\(.name.\)' src README.md` — zero hits
+- `rg 'display_name' src README.md` — README only (docs); no `src` mapping
+- Remaining `src` `name` hits: Product / Discount fields, enumerator / collection names, Vue slot / stub / route names, `ApiError.name`, header callback `name`. Not token display claims.
+
+**Test results**
+- `npm run lint` — pass (`vue-tsc --noEmit` clean)
+- `npm run test` — 10 files / 69 tests passed
+- `npm run test:coverage` — 69 passed; thresholds held (`src/api/**` 100/97.29/100/100; `src/composables/**` 98.37/75.34/100/98.37; `src/components/**` 100/87.17/92.3/100)
+- `npm run build` — pass (`vue-tsc` + Vite production build; existing chunk-size warning only)
+- Cypress not run (F023)
+
+**Blockers**: none
