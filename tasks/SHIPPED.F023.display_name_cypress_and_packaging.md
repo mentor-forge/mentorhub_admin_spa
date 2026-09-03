@@ -1,6 +1,6 @@
 # F023 – 1.0.3 `display_name` Cypress and packaging
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F022_pin_spa_utils_1_0_3`  
 **Description**: Point Cypress at spa_utils **1.0.3** Token-tab and PageFrame `display_name` behavior, keep existing 1.0.1 catalog / `/admin/config` host coverage, and run the packaged SPA as the acceptance gate for [F-AS04 / GitHub #8](https://github.com/mentor-forge/mentorhub_admin_spa/issues/8).
@@ -86,3 +86,55 @@ Paths are relative to **this SPA repository root**.
 Do not restore a local drawer. Do not change the spa_utils pin. Do not add an Events route or list dashboards. Do not pass disallowed `PageFrame` props. Do not implement `display_name` fallbacks in `src/**`.
 
 ## Execution Notes
+
+### Plan (2026-09-03)
+
+Reviewed F022 (pin 1.0.3 shipped; no local mapping), spa_utils TokenClaimsCard / PageFrame ids, and current Cypress.
+
+**Cypress (`navigation.cy.ts` only unless a selector breaks)**
+- Add `display_name` to the default `GET **/admin/api/config` token stub alongside existing `profile_id` / `customer_id` / `mentor_id`.
+- After Settings navigation (`nav-settings-link` → `/admin/config`), assert Token-tab `admin-token-display-name-display` input value **and** the three id displays. Do not assert a token `name` field.
+- Second intercept: omit `display_name`; include decoy `name` / `given_name` / `email` (the leftover-mapping failure mode) and assert `N/A` on `admin-token-display-name-display`.
+- Default `cy.login(['admin'])` chrome stays compact: `nav-profile-name-display` must not exist (`signCypressJwt` omits the claim).
+- Optional chrome present case: inline JWT payload patch + reload (do **not** vendor spa_utils demo `stubJwtDisplayName`). Intercept config so the unsigned patched JWT cannot 401 `loadConfig`. Assert `nav-profile-name-display` inside `nav-profile-link`.
+- Keep F021 catalog / Settings host / logout / non-admin gate coverage. Leave `settings.cy.ts`, `logs.cy.ts`, `deployment.cy.ts` untouched unless a 1.0.3 selector breaks.
+
+**Docs**
+- README Testing / Automation Support: list Token-tab `admin-token-display-name-display` and chrome `nav-profile-name-display` as spa_utils **1.0.3** ids this host asserts.
+
+**Out of scope**
+- Do not change the spa_utils pin. No local Token UI, no `/admin/admin`, no `src/**` fallbacks.
+
+**Tests** (from this SPA root): confirmation `rg` → `lint` / `test` / `test:coverage` / `build` → `container` && `service` && `cypress:run`.
+
+### Summary (2026-09-03)
+
+Extended Cypress against spa_utils **1.0.3** Token-tab and PageFrame `display_name` without changing the pin or adding local fallbacks. `GET **/admin/api/config` token stub now includes `display_name`; Token tab asserts `admin-token-display-name-display` plus the three ids. A second intercept omits `display_name` and supplies decoy `name` / `given_name` / `email` so leftover mapping would fail — UI shows `N/A`. Default login chrome stays compact; an inline JWT payload patch + reload asserts `nav-profile-name-display` inside `nav-profile-link`. README Testing / Automation Support lists those 1.0.3 ids as host-asserted. Packaging gate passed against `http://localhost:8390/admin/...`.
+
+**Files changed**
+- `cypress/e2e/navigation.cy.ts` — Token present + missing (`N/A` / decoys), compact chrome, stubbed JWT chrome
+- `README.md` — Testing / Automation Support 1.0.3 Token and chrome ids
+- this task file (plan, results, status)
+
+**Unchanged**
+- spa_utils pin remains exact `1.0.3`
+- `settings.cy.ts`, `logs.cy.ts`, `deployment.cy.ts`, `commands.ts`, `e2e.ts`, fixtures, `src/**`
+
+**Confirmation searches**
+- `rg 'token\.name|token\[.name.\]|token\.get\(.name.\)' src cypress README.md` — zero hits
+- `rg 'display_name|admin-token-display-name-display|nav-profile-name-display' cypress README.md` — `navigation.cy.ts` (stubs + assertions) and README docs only
+
+**Test results**
+- `npm run lint` — pass (`vue-tsc --noEmit` clean)
+- `npm run test` — 10 files / 69 tests passed
+- `npm run test:coverage` — 69 passed; thresholds held (`src/api/**` 100/97.29/100/100; `src/composables/**` 98.37/75.34/100/98.37; `src/components/**` 100/87.17/92.3/100)
+- `npm run build` — pass (`vue-tsc` + Vite production build; existing chunk-size warning only)
+- `npm run container` — pass; image `ghcr.io/mentor-forge/mentorhub_admin_spa:latest` (`sha256:5d9bcebbdccbd47f781f01f5845fa158fb0535fc11c4c13147bb52add2773f1b`); Docker `JSONArgsRecommended` warning; npm install reported 6 audit vulnerabilities and install-script warnings during image build
+- `npm run service` — pass; `mh down && mh up admin && npm run open` with `IDP_LOGIN_URI=http://127.0.0.1:8080/login.html` and `GITHUB_TOKEN` from `GITHUB_FOREVER_TOKEN`
+- `npm run cypress:run` — pass against `http://localhost:8390`: `deployment.cy.ts` 9/9, `logs.cy.ts` 3/3, `navigation.cy.ts` 11/11, `settings.cy.ts` 4/4; **27/27 passing**, 0 failing
+
+**Env workarounds**
+- Exported `GITHUB_TOKEN` from `~/.mentorhub/GITHUB_FOREVER_TOKEN` before `npm run service`
+- Set `IDP_LOGIN_URI=http://127.0.0.1:8080/login.html` before `mh up` so logout/IdP specs stay on the local Developer Edition IdP (runtime-config confirmed)
+
+**Blockers**: none

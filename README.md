@@ -138,7 +138,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.3** `PageFrame` as the navigation
 ### E2E Tests
 - Cypress against the packaged SPA on `http://localhost:8390` (`npm run service` must be running; do not run `npm run dev` at the same time)
 - Prefer `cy.visitPrefixed(...)` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
+- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), Token-tab / chrome `display_name` from spa_utils **1.0.3** (`admin-token-display-name-display`, `nav-profile-name-display`), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
 - UI role gating is UX; API authorization is proven separately via Bearer requests through `/admin/api/`
 - `chromeWebSecurity: false` is required so Cypress can observe the role-guard's cross-origin `location.replace` to welcome `:8080/discovery/` (localStorage does not cross `:8390` → `:8080`)
 
@@ -148,7 +148,10 @@ Cypress targets spa_utils `PageFrame` ids for chrome, not local ones. Hamburger 
 role gates and collection hrefs are tested in spa_utils — this SPA only asserts host chrome
 and routes:
 
-- Always present when an authenticated user can remain on this SPA: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`. PageFrame chrome `nav-profile-name-display` (JWT `display_name` next to the avatar) is owned by spa_utils 1.0.3 and is omitted when the claim is blank or missing.
+- Always present when an authenticated user can remain on this SPA: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
+- spa_utils **1.0.3** ids this host asserts (not local `nav-*` ids):
+  - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `N/A` (no `name` / `given_name` / `email` fallback)
+  - PageFrame chrome `nav-profile-name-display` inside `nav-profile-link` — JWT `display_name` next to the avatar; omitted when the claim is blank or missing
 - This SPA hosts Settings at `/admin/config` (`nav-settings-link`, admin-only; `/admin/settings` is the Products / Discounts detail page, not this link)
 
 Do not define host `nav-*` ids in this SPA. Page-level ids follow `{domain}-{page}-{element}` (`admin-settings-*`, `admin-logs-*`, `admin-config-page`).
