@@ -102,12 +102,12 @@ src/
 | Layer | Owns |
 |-------|------|
 | **This SPA** | Admin journey pages: `/config` (hamburger Settings / packaged AdminPage), `/settings` (Products / Discounts detail), `/logs`; page state; Setting / ExternalEvent / Config API client; `SettingsTableEditor` presentation |
-| **`spa_utils` 1.0.4** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome (JWT `display_name` below Logout in the drawer as `nav-profile-name-display` when present; no fallback to `name` / `given_name` / `email` / `user_id` / `sub`), role-gated hamburger catalog (Home, Resources, Paths for any authenticated user; Plans **mentor**; Notifications, Events, and Settings **admin-only**), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
+| **`spa_utils` 1.0.5** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome (JWT `display_name` below Logout in the drawer as `nav-profile-name-display` when present; no fallback to `name` / `given_name` / `email` / `user_id` / `sub`), role-gated hamburger catalog (Home, Resources, Paths for any authenticated user; Plans **mentor**; Notifications, Events, and Settings **admin-only**), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table |
 | **Discovery SPA** | Products collection browsing (`/discovery/products`); this SPA must not host a Products list |
 | **nginx (this container)** | `/admin/` document prefix, SPA history fallback, `/admin/api/` → `admin_api`, dual runtime-config paths, cache headers |
 | **Admin API** | Authorization enforcement (`admin` role), Setting mutations, ExternalEvent reads, webhook ingress (never under `/admin/`) |
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.4** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination. PageFrame chrome `nav-profile-name-display` is owned by spa_utils 1.0.4 and shows JWT `display_name` only — this SPA does not map a local display name.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.5** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination. PageFrame chrome `nav-profile-name-display` is owned by spa_utils 1.0.5 and shows `config.token.display_name` only — this SPA does not map a local display name.
 
 ### Deployment Prefix & Runtime Config Invariants
 
@@ -121,7 +121,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.4** `PageFrame` as the navigation
 
 ### Admin Config, Settings & Logs Features
 
-- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`). Token-tab `display_name` (`admin-token-display-name-display`) and the other claim ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.4 `TokenClaimsCard`; missing string claims display `N/A`. This SPA does not invent a local display-name mapping.
+- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`). Token-tab `display_name` (`admin-token-display-name-display`) and the other claim ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.5 `TokenClaimsCard`; missing `display_name` displays `unknown`, other missing string claims display `N/A`. This SPA does not invent a local display-name mapping.
 - **Settings (`/admin/settings`)**: Tabbed **Products** and **Discounts** tables via local `SettingsTableEditor` (harvest-compatible prop contract; cells use spa_utils `SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`). Soft-delete archives (`status: 'archived'` Products, `status: 'inactive'` Discounts). Active tab syncs with `?tab=products|discounts`. Journey-specific detail page — not the hamburger Settings target.
 - **Logs (`/admin/logs`)**: Read-only external-event ingress audit, newest first, provider filter (`All` / `Cognito` / `Stripe`) via `?source=`, expandable JSON detail, offset/size "Load More".
 
@@ -138,7 +138,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.4** `PageFrame` as the navigation
 ### E2E Tests
 - Cypress against the packaged SPA on `http://localhost:8390` (`npm run service` must be running; do not run `npm run dev` at the same time)
 - Prefer `cy.visitPrefixed(...)` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), Token-tab / chrome `display_name` from spa_utils **1.0.4** (`admin-token-display-name-display`, `nav-profile-name-display`), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
+- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), Token-tab / chrome `display_name` from spa_utils **1.0.5** (`admin-token-display-name-display`, `nav-profile-name-display`), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
 - UI role gating is UX; API authorization is proven separately via Bearer requests through `/admin/api/`
 - `chromeWebSecurity: false` is required so Cypress can observe the role-guard's cross-origin `location.replace` to welcome `:8080/discovery/` (localStorage does not cross `:8390` → `:8080`)
 
@@ -149,9 +149,9 @@ role gates and collection hrefs are tested in spa_utils — this SPA only assert
 and routes:
 
 - Always present when an authenticated user can remain on this SPA: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
-- spa_utils **1.0.4** ids this host asserts (not local `nav-*` ids):
-  - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `N/A` (no `name` / `given_name` / `email` fallback)
-  - PageFrame chrome `nav-profile-name-display` below Logout — JWT `display_name` in the drawer footer; omitted when the claim is blank or missing
+- spa_utils **1.0.5** ids this host asserts (not local `nav-*` ids):
+  - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `unknown` (no `name` / `given_name` / `email` fallback)
+  - PageFrame chrome `nav-profile-name-display` below Logout — `config.token.display_name` in the drawer footer (`unknown` when the claim is blank or missing)
 - This SPA hosts Settings at `/admin/config` (`nav-settings-link`, admin-only; `/admin/settings` is the Products / Discounts detail page, not this link)
 
 Do not define host `nav-*` ids in this SPA. Page-level ids follow `{domain}-{page}-{element}` (`admin-settings-*`, `admin-logs-*`, `admin-config-page`).
