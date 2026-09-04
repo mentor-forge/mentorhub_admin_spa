@@ -150,16 +150,16 @@ describe('Navigation (spa_utils PageFrame)', () => {
   it('shows config token display_name in PageFrame chrome', () => {
     stubAdminConfig()
     cy.login(['admin'])
-    cy.visitPrefixed(CONFIG_PATHNAME)
     cy.wait('@getAdminConfig')
 
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-link"]')
       .find('[data-automation-id="nav-profile-name-display"]')
       .should('not.exist')
-    cy.get('[data-automation-id="nav-drawer-toggle"]').click({ force: true })
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
     cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-name-display"]')
+      .scrollIntoView()
       .should('be.visible')
       .and('contain', STUB_DISPLAY_NAME)
   })
