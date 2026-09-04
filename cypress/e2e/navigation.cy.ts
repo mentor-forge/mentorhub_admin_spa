@@ -9,11 +9,14 @@ describe('Navigation (spa_utils PageFrame)', () => {
   const IDP_STUB_PATHNAME = '/login.html'
   const SETTINGS_HREF = `${APP_ORIGIN}${CONFIG_PATHNAME}`
 
+  const STUB_DISPLAY_NAME = 'Ada Lovelace'
+
   const adminConfigBody = {
     config_items: [],
     versions: [],
     enumerators: [],
     token: {
+      display_name: STUB_DISPLAY_NAME,
       profile_id: 'profile-e2e',
       customer_id: 'customer-e2e',
       mentor_id: 'mentor-e2e',
@@ -81,6 +84,10 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .and('contain.text', 'Admin')
     cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
+    // Config token display_name lives in the drawer, not under the avatar.
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('not.exist')
 
     cy.get('[data-automation-id="nav-drawer-toggle"]').click({ force: true })
     cy.get('[data-automation-id="nav-settings-link"]')
@@ -93,6 +100,9 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="admin-config-page"]').should('be.visible')
 
     cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', STUB_DISPLAY_NAME)
     cy.get('[data-automation-id="admin-token-profile-id-display"]')
       .find('input')
       .should('have.value', 'profile-e2e')
@@ -102,6 +112,56 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="admin-token-mentor-id-display"]')
       .find('input')
       .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows unknown on Token tab when config token omits display_name', () => {
+    const { display_name: _omitted, ...idsOnly } = adminConfigBody.token
+    cy.intercept('GET', '**/admin/api/config', {
+      ...adminConfigBody,
+      token: {
+        ...idsOnly,
+        name: 'Should Not Appear',
+        given_name: 'Also Hidden',
+        email: 'hidden@example.com',
+      },
+    }).as('getAdminConfigMissingDisplayName')
+
+    cy.login(['admin'])
+    cy.visitPrefixed(CONFIG_PATHNAME)
+    cy.wait('@getAdminConfigMissingDisplayName')
+    cy.url().should('not.include', '/admin/admin')
+
+    cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', 'unknown')
+      .and('not.have.value', 'Should Not Appear')
+    cy.get('[data-automation-id="admin-token-profile-id-display"]')
+      .find('input')
+      .should('have.value', 'profile-e2e')
+    cy.get('[data-automation-id="admin-token-customer-id-display"]')
+      .find('input')
+      .should('have.value', 'customer-e2e')
+    cy.get('[data-automation-id="admin-token-mentor-id-display"]')
+      .find('input')
+      .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows config token display_name in PageFrame chrome', () => {
+    stubAdminConfig()
+    cy.login(['admin'])
+    cy.wait('@getAdminConfig')
+
+    cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('not.exist')
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
+    cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
+    cy.get('[data-automation-id="nav-profile-name-display"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', STUB_DISPLAY_NAME)
   })
 
   it('loads /admin/logs and /admin/config through history fallback', () => {
