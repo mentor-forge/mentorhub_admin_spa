@@ -1,6 +1,6 @@
 # F030 – Document SPA setup and verify provider-neutral runtime behavior
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -72,4 +72,7 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Updated README and the dependency instructions in the planning guide to use GitHub Packages authentication, exact pins, and the committed lock. Recorded the GitHub-hosted rollback floor and local validation in the migration notes.
+- Authenticated development install, clean locked install, type checks, production build, and all 69 unit tests passed, including expired-session rejection and authentication clearing on HTTP 401.
+- Built the native ARM64 image without AWS credentials. Verified Nginx configuration, the health endpoint, runtime sign-in configuration, and absence of the npm credential in the final container and image history. All 27 Cypress tests passed against the packaged image with a disposable Admin API and seeded MongoDB. Used an isolated loopback stack in place of the helper that would stop the active Developer Edition stack. Removed the disposable stack after testing.
+- Hosted PR validation must still verify workflow-token package access. Main-branch GHCR publication is a post-merge check.
