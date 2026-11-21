@@ -1,6 +1,6 @@
 # F031 — Patch the Nginx base image built by CI
 
-**Status**: Pending  
+**Status**: Shipped
 **Type**: Defect  
 **Depends On**: F030  
 **Issue**: https://github.com/mentor-forge/mentorhub_admin_spa/issues/12  
@@ -85,4 +85,10 @@ All other files remain outside this task's output scope. If verification reveals
 
 ## Execution Notes
 
-Reserved for the execution agent: selected release/tag/index digest, advisory applicability, commands and results, both architecture image identities, scan evidence, blockers, and post-merge publication verification. No implementation or packaging tests have been run during planning.
+- On November 20, 2026 (Eastern), the [upstream release list](https://nginx.org/en/download.html) identified 1.30.7 as stable. Inspection of the [official Alpine image](https://hub.docker.com/_/nginx) confirmed the `nginx:1.30.7-alpine` OCI index and its Linux AMD64 and ARM64 manifests. The Dockerfile records the index digest.
+- The [upstream security advisories](https://nginx.org/en/security_advisories.html) list 1.30.7 as containing the fix for the resolver advisory CVE-2026-123634. That resolver is used in the generated config. The selected stable version also contains the listed HTTP/2 and HTTP/3 fixes. The binary includes those modules, while the effective Admin config listens on plain HTTP without those protocols enabled. The original issue supplied no advisory ID, so the previous published image's exposure is unverified.
+- Clean locked `npm ci --include=dev`, `npm run lint`, all 69 unit tests, and the production build passed. The publishing workflow YAML check verified main-only publishing, both architectures, the refreshed-base setting, and the existing npm secret. Shell syntax and `git diff --check` passed.
+- Native ARM64 built through `npm run container` with the GitHub npm BuildKit secret. The existing `npm run api` and `npm run service` scripts use shared Developer Edition teardown and fixed host ports, so equivalent startup used disposable MongoDB, seed, API, and SPA containers with an isolated network and loopback port. The running SPA image ID matched the fresh build. `nginx -t -c /tmp/nginx.conf` passed, and all 27 packaged Cypress tests passed against that image. The isolated Welcome proxy returned HTTP 200 on the shared-origin Admin page and the expected HTTP 401 on the unauthenticated prefixed API request, using the public `localhost:8080` host on an alternate physical loopback port. Temporary QA containers were removed.
+- Both final binaries reported `nginx/1.30.7` under explicit architecture selection with `nginx -v` and `nginx -V`. ARM64 image ID: `sha256:7237dc7bdaa3a86f94b63a4219905d02d708bcd8a06b277a466ccac752e9359d`. AMD64 image ID: `sha256:1b1dcdb324a9a4dc48f91ac62b3f43b8ac9ffde6bf087bdf44028cd5ff950e10`. The default builder lacked AMD64 emulation. The retry succeeded with an isolated BuildKit container, and the packaged binary ran under standalone QEMU. No host emulator registration was needed.
+- Trivy 0.76.2 scanned both saved final images using schema 2, updated November 20, 2026 at 13:11 UTC. It reported zero Nginx findings and 11 Alpine 3.24.4 package findings per image: CVE-2026-107496, CVE-2026-88822, CVE-2026-88823, CVE-2026-95691 and CVE-2026-95692 in each of libcrypto3 and libssl3, and CVE-2026-4738 in zlib. Address the OS dependencies in a separate base update.
+- After merge, record the new GHCR OCI digest and verify the packaged Nginx binary on both platforms before closing the security issue. Promote the verified application digest through test, staging, and production.

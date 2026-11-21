@@ -37,6 +37,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          pull: true
           tags: ghcr.io/mentor-forge/mentorhub_admin_spa:latest
           secrets: |
             github_npm_token=${{ secrets.GITHUB_TOKEN }}

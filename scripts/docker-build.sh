@@ -9,6 +9,6 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
   exit 1
 fi
 
-DOCKER_BUILDKIT=1 docker build \
+DOCKER_BUILDKIT=1 docker build --pull \
   --secret id=github_npm_token,env=GITHUB_TOKEN \
   -t "${ADMIN_SPA_IMAGE:-ghcr.io/mentor-forge/mentorhub_admin_spa:latest}" .

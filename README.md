@@ -165,6 +165,12 @@ Do not define host `nav-*` ids in this SPA. Page-level ids follow `{domain}-{pag
 
 Trusted PRs run a locked install, type checks, unit tests, and builds without publishing. Fork and Dependabot PRs validate the lockfile without package credentials. On pushes to main, `.github/workflows/docker-push.yml` builds and pushes `ghcr.io/mentor-forge/mentorhub_admin_spa:latest`.
 
+### Nginx base image updates
+
+The runtime uses the official stable Nginx 1.30.7 Alpine image, pinned to its multi-platform index in the Dockerfile. For an update, check the [stable release](https://nginx.org/en/download.html) and [security advisories](https://nginx.org/en/security_advisories.html), then verify the official Alpine image index includes AMD64 and ARM64. Update the version and digest together.
+
+Build both application architectures with a fresh base pull. Verify the packaged binary with `nginx -V`, check the generated config with `nginx -t -c /tmp/nginx.conf`, scan both images, and exercise the packaged Admin routes with Cypress. After main publishes, verify the GHCR digest and binary versions. Promote that same application digest across environments.
+
 ## Configuration
 - **Supported browser entry**: `http://<host>:8080/admin/` via Developer Edition welcome / ALB
 - **Direct-port debugging only**: `http://localhost:8390/admin/`; `http://localhost:8390/` and `/admin` redirect to `/admin/`
