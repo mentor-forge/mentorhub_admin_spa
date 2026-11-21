@@ -1,6 +1,6 @@
 # F027 – Migrate SPA npm source, exact package pin and lockfile
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -76,4 +76,5 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Updated the tracked npm configuration to scope only Mentor Forge packages to GitHub Packages with a host-scoped environment reference. Pinned the published SPA Utils 1.0.7 package and reconciled the lockfile against public npm, preserving all unrelated locked versions and integrity values.
+- Verified an authenticated npm install and fresh-cache npm ci in a disposable project. A fresh-cache install without a token returned HTTP 401 from GitHub Packages. All 69 unit tests and the Vue TypeScript/Vite build passed. The build still reports the existing runtime-config script and chunk-size warnings.

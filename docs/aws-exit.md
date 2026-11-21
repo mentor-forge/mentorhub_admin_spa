@@ -13,4 +13,6 @@ The npm registry returned the published exact version 1.0.7 through authenticate
 
 Verify a clean locked install, Vue and TypeScript compilation, the stylesheet and Cypress helper imports, and packaged login and proxy behavior within Admin SPA. Record this repository’s evidence independently of rollout to other journeys. Prior SPA Utils pin tasks are shipped historical records.
 
+Admin SPA pins SPA Utils 1.0.7 exactly. Use `npm ci` with a GitHub Packages read token exported as `GITHUB_TOKEN`. The committed npm config sends that token only to GitHub Packages and uses public npm for third-party packages. No AWS authentication is needed.
+
 The rollback floor is SPA Utils 1.0.7, the first GitHub-hosted package version. Restore a verified GitHub-hosted package pin and its matching lockfile for future dependency rollbacks. For an image regression, restore a previously verified image through the normal deployment procedure and rerun route and login checks.
