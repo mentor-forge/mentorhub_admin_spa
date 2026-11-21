@@ -1,6 +1,6 @@
 # F029 – Update SPA GitHub Actions registry permissions and validation
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -73,4 +73,8 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Replaced AWS OIDC and CodeArtifact wiring with the built-in repository token mounted as the `github_npm_token` BuildKit secret. Main remains the only GHCR publish trigger, with AMD64 and ARM64 output and existing cache settings.
+- Added credential-free lockfile validation for all PRs. A separate read-only package job runs the locked install, type checks, tests, SPA build, and non-publishing image build on same-repository PRs other than Dependabot.
+- Parsed both workflows and verified triggers, permissions, registry sources, secret name, and fork isolation. Ran the lockfile check locally without a package token. The local build helper gave its expected diagnostic with the token unset.
+- Local authenticated `npm ci`, Vue type check, all 69 unit tests, and production build passed. A no-layer-cache ARM64 image build passed with a scoped GitHub Packages secret and without AWS credentials.
+- Hosted PR validation must confirm that the Admin SPA workflow token can read SPA Utils. The main-branch GHCR publish job has not run for these changes.

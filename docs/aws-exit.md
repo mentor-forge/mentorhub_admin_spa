@@ -18,3 +18,9 @@ Admin SPA pins SPA Utils 1.0.7 exactly. Use `npm ci` with a GitHub Packages read
 Run `npm run container` with the same `GITHUB_TOKEN` to build the Admin SPA image. The wrapper passes the token as the `github_npm_token` BuildKit secret. The build resolves the committed lock with `npm ci` and puts the host-scoped registry configuration in a temporary filesystem for that step. The Docker context excludes the developer's npm configuration. Set `ADMIN_SPA_IMAGE` to use a local test tag instead of the default GHCR image tag.
 
 The rollback floor is SPA Utils 1.0.7, the first GitHub-hosted package version. Restore a verified GitHub-hosted package pin and its matching lockfile for future dependency rollbacks. For an image regression, restore a previously verified image through the normal deployment procedure and rerun route and login checks.
+
+## GitHub Actions validation
+
+Pull requests to main always check the lockfile and its registry origins without package credentials. Pull requests from a branch in this repository also run a locked install, type checks, unit tests, and both the SPA and container builds. This job uses the repository workflow token with package read access. Fork and Dependabot PRs run only the lockfile check. A maintainer can run the full validation from a trusted branch in this repository after reviewing the changes.
+
+The main-branch workflow publishes the existing AMD64 and ARM64 GHCR image. It passes the workflow token to the Docker install step as a BuildKit secret and uses package write permission for publishing. If a trusted run receives a GitHub Packages authorization error during install, verify that SPA Utils grants this repository read access under the package's **Manage Actions access** settings. An authenticated local install uses a different credential and cannot verify this permission.
