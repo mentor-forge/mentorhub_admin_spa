@@ -1,6 +1,6 @@
 # F028 – Use GitHub npm BuildKit secrets in SPA container builds
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -76,4 +76,7 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- The local wrapper now passes `GITHUB_TOKEN` as the required `github_npm_token` BuildKit secret. Docker installs the committed lock with `npm ci` and uses a host-scoped npm configuration on a temporary filesystem during that step. The Docker context excludes the project npm config. Existing image name and runtime configuration are preserved. `ADMIN_SPA_IMAGE` selects a temporary build tag for local checks.
+- Built the native ARM64 image using `npm run container` without AWS environment credentials. Missing GitHub credentials produced an actionable error before Docker ran. The real token was absent from the build log. The final image had no npm configuration or secret mount, no token in its environment, and no credential-related entries in its history.
+- Passed Nginx syntax and runtime-config checks and all 27 Cypress tests against the packaged image. This covered prefixed shell/assets/API proxy, authorization failures, configured login and logout, navigation, logs, and settings. Used a disposable loopback-only Admin SPA with isolated Admin API and seeded MongoDB in place of `npm run service`, which stops the running Developer Edition profile. Removed the disposable containers, their volumes, and test network.
+- The hosted workflow needs the same secret ID in F029. The build retained the existing runtime-config script and chunk-size warnings, plus the Nginx image shell-form CMD warning.

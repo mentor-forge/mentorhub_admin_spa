@@ -15,4 +15,6 @@ Verify a clean locked install, Vue and TypeScript compilation, the stylesheet an
 
 Admin SPA pins SPA Utils 1.0.7 exactly. Use `npm ci` with a GitHub Packages read token exported as `GITHUB_TOKEN`. The committed npm config sends that token only to GitHub Packages and uses public npm for third-party packages. No AWS authentication is needed.
 
+Run `npm run container` with the same `GITHUB_TOKEN` to build the Admin SPA image. The wrapper passes the token as the `github_npm_token` BuildKit secret. The build resolves the committed lock with `npm ci` and puts the host-scoped registry configuration in a temporary filesystem for that step. The Docker context excludes the developer's npm configuration. Set `ADMIN_SPA_IMAGE` to use a local test tag instead of the default GHCR image tag.
+
 The rollback floor is SPA Utils 1.0.7, the first GitHub-hosted package version. Restore a verified GitHub-hosted package pin and its matching lockfile for future dependency rollbacks. For an image regression, restore a previously verified image through the normal deployment procedure and rerun route and login checks.

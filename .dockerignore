@@ -25,3 +25,5 @@ Refactor.md
 *.spec.tsx
 vitest.config.ts
 cypress.config.ts
+# BuildKit supplies registry authentication at install time.
+.npmrc
