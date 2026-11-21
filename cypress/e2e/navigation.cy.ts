@@ -47,22 +47,6 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.clearLocalStorage()
   })
 
-  it('should serve the app shell and its assets under the /admin/ prefix', () => {
-    cy.login(['admin'])
-
-    cy.location('pathname').should('eq', SETTINGS_PATHNAME)
-    cy.document().then((doc) => {
-      const sources = [...doc.querySelectorAll('script[src]')].map((tag) => tag.getAttribute('src'))
-      expect(sources, 'runtime config is fetched under the prefix').to.include(
-        '/admin/runtime-config.js'
-      )
-      expect(
-        sources.some((src) => src?.startsWith('/admin/assets/')),
-        'app bundle is fetched under the prefix'
-      ).to.equal(true)
-    })
-  })
-
   it('should send API requests to the prefixed /admin/api base', () => {
     cy.intercept('GET', '**/api/config', { statusCode: 200, body: { enumerators: [] } }).as(
       'anyConfigRequest'
@@ -254,17 +238,6 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.window().then((win) => {
       expect(win.localStorage.getItem('access_token')).to.equal(null)
       expect(win.localStorage.getItem('user_roles')).to.equal(null)
-    })
-  })
-
-  it('should serve the real container IdP config from the prefixed runtime-config.js', () => {
-    cy.request('/admin/runtime-config.js').then((response) => {
-      expect(response.status).to.equal(200)
-      expect(response.headers['cache-control']).to.contain('no-store')
-
-      const configured = /IDP_LOGIN_URI:\s*'([^']+)'/.exec(String(response.body))?.[1] ?? ''
-      expect(new URL(configured).pathname).to.equal('/login.html')
-      expect(new URL(configured).port).to.equal('8080')
     })
   })
 })

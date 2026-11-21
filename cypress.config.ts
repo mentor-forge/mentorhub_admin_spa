@@ -16,9 +16,13 @@ export default defineConfig({
     env: {
       JWT_SECRET: e2eDefaultJwtSecret(),
     },
-    setupNodeEvents(on) {
+    setupNodeEvents(on, config) {
+      if (config.env.target === 'dev') {
+        config.excludeSpecPattern = [...[config.excludeSpecPattern].flat(), '**/deployment.cy.ts']
+      }
       registerJwtSignTask(on)
       on('file:preprocessor', createBundler())
+      return config
     },
   },
 })

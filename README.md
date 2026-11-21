@@ -23,7 +23,7 @@ npm run service
 | Admin API | **8389** | this SPA's nginx at `/admin/api/` (and `/api/` for direct-port debug) |
 
 > [!WARNING]
-> `npm run dev` and `npm run service` both bind host port **8390** and cannot run at the same time.
+> `npm run dev` and `npm run service` both bind host port **8390** and cannot run at the same time. The Cypress dev commands skip the deployment suite, which checks Nginx redirects, cache headers, built assets, and generated runtime configuration.
 
 The supported browser entry is `http://<host>:8080/admin/` through Developer Edition welcome / ALB. `http://localhost:8390/admin/` is for Cypress, OpenAPI, and debugging only. API calls from the app use `/admin/api/` and reach `admin_api` through this SPA's nginx.
 
@@ -73,8 +73,12 @@ npm run test:coverage
 ## open Cypress E2E test runner
 npm run cypress
 
-## run Cypress E2E tests headless
+## run the full Cypress suite headless against the packaged SPA
 npm run cypress:run
+
+## run browser behavior tests against Vite after starting backing services and npm run dev
+npm run cypress:dev
+npm run cypress:run:dev
 
 ## de down and start db + admin-api containers
 npm run api

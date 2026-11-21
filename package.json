@@ -16,6 +16,8 @@
     "test:ui": "vitest --ui",
     "cypress": "cypress open",
     "cypress:run": "cypress run",
+    "cypress:dev": "cypress open --env target=dev",
+    "cypress:run:dev": "cypress run --env target=dev",
     "api": "mh down && mh up admin-api",
     "service": "mh down && mh up admin && npm run open",
     "container": "sh scripts/docker-build.sh",
