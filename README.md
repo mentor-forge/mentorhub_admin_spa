@@ -23,7 +23,7 @@ npm run service
 | Admin API | **8389** | this SPA's nginx at `/admin/api/` (and `/api/` for direct-port debug) |
 
 > [!WARNING]
-> `npm run dev` and `npm run service` both bind host port **8390** and cannot run at the same time.
+> `npm run dev` and `npm run service` both bind host port **8390** and cannot run at the same time. The Cypress dev commands skip the deployment suite, which checks Nginx redirects, cache headers, built assets, and generated runtime configuration.
 
 The supported browser entry is `http://<host>:8080/admin/` through Developer Edition welcome / ALB. `http://localhost:8390/admin/` is for Cypress, OpenAPI, and debugging only. API calls from the app use `/admin/api/` and reach `admin_api` through this SPA's nginx.
 
@@ -44,8 +44,12 @@ Hamburger **Settings** (`nav-settings-link`) uses spa_utils `hostingConfigHref()
 
 ## Developer Commands
 
+Export `GITHUB_TOKEN` with GitHub Packages read access before installing dependencies or building the container. The repository npm configuration scopes the token to GitHub Packages. Third-party packages come from public npm. The Docker build receives the token as a BuildKit secret.
+
+Use `npm ci` for routine installs. When updating SPA Utils, install the intended GitHub-hosted version with `npm install --save-exact` and commit both package files. For rollback, restore a verified GitHub-hosted pin and its matching lockfile. The earliest supported version is 1.0.7. See the [migration and verification notes](docs/aws-exit.md).
+
 ```sh
-## install dependencies (run `mh` first for CodeArtifact auth)
+# Install exact versions from the committed lock (requires GITHUB_TOKEN)
 npm ci
 
 ## install Cypress binaries
@@ -69,8 +73,12 @@ npm run test:coverage
 ## open Cypress E2E test runner
 npm run cypress
 
-## run Cypress E2E tests headless
+## run the full Cypress suite headless against the packaged SPA
 npm run cypress:run
+
+## run browser behavior tests against Vite after starting backing services and npm run dev
+npm run cypress:dev
+npm run cypress:run:dev
 
 ## de down and start db + admin-api containers
 npm run api
@@ -81,7 +89,7 @@ npm run service
 ## open page in the browser (http://localhost:8390/admin/)
 npm run open
 
-## build SPA docker container locally (run `mh` first)
+# Build the SPA container locally using the same GitHub Packages credential
 npm run container
 ```
 
@@ -102,12 +110,12 @@ src/
 | Layer | Owns |
 |-------|------|
 | **This SPA** | Admin journey pages: `/config` (hamburger Settings / packaged AdminPage), `/settings` (Products / Discounts detail), `/logs`; page state; Setting / ExternalEvent / Config API client; `SettingsTableEditor` presentation |
-| **`spa_utils` 1.0.6** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome (JWT `display_name` below Logout in the drawer as `nav-profile-name-display` when present; no fallback to `name` / `given_name` / `email` / `user_id` / `sub`), role-gated hamburger catalog (Home, Resources, Paths for any authenticated user; Plans **mentor**; Notifications, Events, and Settings **admin-only**), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table (`SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`; `MarkdownEditor` resting view is sanitized GFM HTML owned by spa_utils — this SPA does not depend on `marked` or `dompurify`). Package list `CardGrid` is gone; multi-card edit/detail layouts use package `DataCardGrid` / `DataCard` (this SPA has none). |
+| **`spa_utils` 1.0.7** | Auth/JWT bootstrap, IdP redirect, `PageFrame` chrome (JWT `display_name` below Logout in the drawer as `nav-profile-name-display` when present; no fallback to `name` / `given_name` / `email` / `user_id` / `sub`), role-gated hamburger catalog (Home, Resources, Paths for any authenticated user; Plans **mentor**; Notifications, Events, and Settings **admin-only**), `buildJourneyUrl` / `hostingConfigHref` / ALB origin rules, typed editors used inside the table (`SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`; `MarkdownEditor` resting view is sanitized GFM HTML owned by spa_utils — this SPA does not depend on `marked` or `dompurify`). Package list `CardGrid` is gone; multi-card edit/detail layouts use package `DataCardGrid` / `DataCard` (this SPA has none). |
 | **Discovery SPA** | Products collection browsing (`/discovery/products`); list card dashboards and collections stay on Discovery — this SPA must not host a Products list |
 | **nginx (this container)** | `/admin/` document prefix, SPA history fallback, `/admin/api/` → `admin_api`, dual runtime-config paths, cache headers |
 | **Admin API** | Authorization enforcement (`admin` role), Setting mutations, ExternalEvent reads, webhook ingress (never under `/admin/`) |
 
-Uses `@mentor-forge/mentorhub_spa_utils` **1.0.6** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination. PageFrame chrome `nav-profile-name-display` is owned by spa_utils 1.0.6 and shows `config.token.display_name` only — this SPA does not map a local display name.
+Uses `@mentor-forge/mentorhub_spa_utils` **1.0.7** `PageFrame` as the navigation shell. Local nav config is disallowed — do not pass `navItems`, URL maps, or ALB origins. Cross-SPA drawer hrefs are absolute welcome/ALB `:8080` URLs from `buildJourneyUrl`, never direct debug ports (`:8390`, etc.). Hamburger **Settings** uses `hostingConfigHref()` → `{origin}/admin/config` on this SPA; Products / Customer / Customer Members are **not** drawer rows. `/admin/settings` is the Products / Discounts **detail** page only — it is not the `nav-settings-link` destination. PageFrame chrome `nav-profile-name-display` is owned by spa_utils 1.0.7 and shows `config.token.display_name` only — this SPA does not map a local display name.
 
 ### Deployment Prefix & Runtime Config Invariants
 
@@ -121,7 +129,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.6** `PageFrame` as the navigation
 
 ### Admin Config, Settings & Logs Features
 
-- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`). Token-tab `display_name` (`admin-token-display-name-display`) and the other claim ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.6 `TokenClaimsCard`; missing `display_name` displays `unknown`, other missing string claims display `N/A`. This SPA does not invent a local display-name mapping.
+- **Config (`/admin/config`)**: Packaged spa_utils `AdminPage` (Token claims, Config Items, Versions, Enumerators) fed by `GET /admin/api/config`. Admin role required. This is the hamburger **Settings** destination (`hostingConfigHref()`). Token-tab `display_name` (`admin-token-display-name-display`) and the other claim ids (`admin-token-profile-id-display`, etc.) are owned by spa_utils 1.0.7 `TokenClaimsCard`; missing `display_name` displays `unknown`, other missing string claims display `N/A`. This SPA does not invent a local display-name mapping.
 - **Settings (`/admin/settings`)**: Tabbed **Products** and **Discounts** tables via local `SettingsTableEditor` (harvest-compatible prop contract; cells use spa_utils `SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`). Soft-delete archives (`status: 'archived'` Products, `status: 'inactive'` Discounts). Active tab syncs with `?tab=products|discounts`. Journey-specific detail page — not the hamburger Settings target.
 - **Logs (`/admin/logs`)**: Read-only external-event ingress audit, newest first, provider filter (`All` / `Cognito` / `Stripe`) via `?source=`, expandable JSON detail, offset/size "Load More".
 
@@ -138,7 +146,7 @@ Uses `@mentor-forge/mentorhub_spa_utils` **1.0.6** `PageFrame` as the navigation
 ### E2E Tests
 - Cypress against the packaged SPA on `http://localhost:8390` (`npm run service` must be running; do not run `npm run dev` at the same time)
 - Prefer `cy.visitPrefixed(...)` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), Token-tab / chrome `display_name` from spa_utils **1.0.6** (`admin-token-display-name-display`, `nav-profile-name-display`), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here. This host does not assert a markdown resting view — it has no `MarkdownEditor` field; Products / Discounts remain table cell editors (`SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`).
+- Specs cover Settings / Logs workflows, spa_utils `PageFrame` chrome (this SPA’s `/admin/config` Settings host and admin gate), Token-tab / chrome `display_name` from spa_utils **1.0.7** (`admin-token-display-name-display`, `nav-profile-name-display`), and the nginx deployment boundary (`deployment.cy.ts`: redirects, history fallback, cache headers, dual runtime-config, authenticated admin and least-privilege `/admin/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here. This host does not assert a markdown resting view — it has no `MarkdownEditor` field; Products / Discounts remain table cell editors (`SentenceEditor` / `WordEditor` / `CountEditor` / `DateTimeEditor`).
 - UI role gating is UX; API authorization is proven separately via Bearer requests through `/admin/api/`
 - `chromeWebSecurity: false` is required so Cypress can observe the role-guard's cross-origin `location.replace` to welcome `:8080/discovery/` (localStorage does not cross `:8390` → `:8080`)
 
@@ -149,7 +157,7 @@ role gates and collection hrefs are tested in spa_utils — this SPA only assert
 and routes:
 
 - Always present when an authenticated user can remain on this SPA: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
-- spa_utils **1.0.6** ids this host asserts (not local `nav-*` ids):
+- spa_utils **1.0.7** ids this host asserts (not local `nav-*` ids):
   - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `unknown` (no `name` / `given_name` / `email` fallback)
   - PageFrame chrome `nav-profile-name-display` below Logout — `config.token.display_name` in the drawer footer (`unknown` when the claim is blank or missing)
 - This SPA hosts Settings at `/admin/config` (`nav-settings-link`, admin-only; `/admin/settings` is the Products / Discounts detail page, not this link)
@@ -159,7 +167,13 @@ Do not define host `nav-*` ids in this SPA. Page-level ids follow `{domain}-{pag
 
 ## CI
 
-`.github/workflows/docker-push.yml` builds and pushes `ghcr.io/mentor-forge/mentorhub_admin_spa:latest`.
+Trusted PRs run a locked install, type checks, unit tests, and builds without publishing. Fork and Dependabot PRs validate the lockfile without package credentials. On pushes to main, `.github/workflows/docker-push.yml` builds and pushes `ghcr.io/mentor-forge/mentorhub_admin_spa:latest`.
+
+### Nginx base image updates
+
+The runtime uses the official stable Nginx 1.30.7 Alpine image, pinned to its multi-platform index in the Dockerfile. For an update, check the [stable release](https://nginx.org/en/download.html) and [security advisories](https://nginx.org/en/security_advisories.html), then verify the official Alpine image index includes AMD64 and ARM64. Update the version and digest together.
+
+Build both application architectures with a fresh base pull. Verify the packaged binary with `nginx -V`, check the generated config with `nginx -t -c /tmp/nginx.conf`, scan both images, and exercise the packaged Admin routes with Cypress. After main publishes, verify the GHCR digest and binary versions. Promote that same application digest across environments.
 
 ## Configuration
 - **Supported browser entry**: `http://<host>:8080/admin/` via Developer Edition welcome / ALB
