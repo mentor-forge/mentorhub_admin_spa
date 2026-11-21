@@ -1,6 +1,6 @@
 # F026 – Audit SPA dependency, build and runtime coupling
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -70,4 +70,6 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Audited tracked npm, Docker, workflow, and runtime identity paths and recorded the results in `docs/aws-exit.md`.
+- Verified the published package version and integrity through GitHub npm, plus public visibility and repository association through GitHub. Admin SPA workflow-token access still needs a hosted check.
+- Confirmed existing application and Cypress imports use SPA Utils. The repository already uses configurable IdP routing, so the audit calls for preserving the existing behavior. No build or runtime changes were made during this task.
